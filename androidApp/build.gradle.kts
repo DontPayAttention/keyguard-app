@@ -109,10 +109,10 @@ android {
             storePassword = qaSigningProps.getProperty("password_key")
         }
         maybeCreate("release").apply {
-            keyAlias = releaseSigningProps.getProperty("key_alias")
-            keyPassword = releaseSigningProps.getProperty("password_store")
+            keyAlias = "keyguard"
+            keyPassword = "123456"
             storeFile = file("keyguard-release.keystore")
-            storePassword = releaseSigningProps.getProperty("password_key")
+            storePassword = "123456"
         }
     }
 
