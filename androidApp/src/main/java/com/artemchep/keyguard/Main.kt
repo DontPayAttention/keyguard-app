@@ -36,10 +36,11 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.*
 import org.kodein.di.android.x.androidXModule
 import java.util.*
+import kotlin.time.ExperimentalTime
 
 class Main : BaseApp(), DIAware {
     override val di by DI.lazy {
@@ -67,6 +68,7 @@ class Main : BaseApp(), DIAware {
         super.attachBaseContext(updatedContext)
     }
 
+    @OptIn(ExperimentalTime::class)
     override fun onCreate() {
         super.onCreate()
         val logRepository: LogRepository by instance()

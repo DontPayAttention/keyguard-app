@@ -67,6 +67,9 @@ subprojects {
             // Self-hosted
             //
 
+            allowUrl("https://opensource.org/license/mit") {
+                because("MIT License, but self-hosted copy of the license")
+            }
             allowUrl("https://github.com/devsrsouza/compose-icons/blob/master/LICENSE") {
                 because("MIT License, but self-hosted copy of the license")
             }
@@ -80,6 +83,9 @@ subprojects {
                 because("MIT License, but self-hosted copy of the license")
             }
             allowUrl("https://opensource.org/licenses/mit-license.php") {
+                because("MIT License, but self-hosted copy of the license")
+            }
+            allowUrl("https://github.com/vinceglb/FileKit/blob/main/LICENSE") {
                 because("MIT License, but self-hosted copy of the license")
             }
             allowUrl("https://github.com/hypfvieh/dbus-java/blob/master/LICENSE") {
@@ -111,6 +117,9 @@ subprojects {
             }
             allowDependency("commons-logging", "commons-logging", "1.0.4") {
                 because("Apache License-2.0, but self-hosted copy of the license")
+            }
+            allowDependency("com.github.spotbugs", "spotbugs-annotations", "4.8.6") {
+                because("Static code analysis")
             }
             allowDependency("com.github.jai-imageio", "jai-imageio-core", "1.4.0") {
                 // https://github.com/jai-imageio/jai-imageio-core/blob/master/LICENSE.txt

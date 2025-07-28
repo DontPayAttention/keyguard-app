@@ -189,6 +189,7 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 api(compose.components.resources)
 
+                api(libs.kotlin.stdlib)
                 api(libs.kdrag0n.colorkt)
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.collections.immutable)
@@ -216,6 +217,9 @@ kotlin {
                 api(libs.halilibo.richtext.markdown)
                 api(libs.devsrsouza.feather)
             }
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
 
         // Share jvm code between different JVM platforms, see:
@@ -259,7 +263,9 @@ kotlin {
                 }
                 api(libs.kamel.image)
                 api(libs.mayakapps.window.styler)
-                api(libs.wunderbox.nativefiledialog)
+                api(libs.vinceglb.filekit.core)
+                api(libs.vinceglb.filekit.dialogs)
+                api(libs.vinceglb.filekit.compose)
                 api(libs.willena.sqlite.jdbc)
                 api(project(":desktopLibJvm"))
             }
@@ -267,7 +273,7 @@ kotlin {
         val androidMain by getting {
             dependsOn(jvmMain)
             dependencies {
-                api(platform(libs.firebase.bom.get()))
+                api(project.dependencies.platform(libs.firebase.bom.get()))
                 api(libs.firebase.analytics.ktx)
                 api(libs.firebase.crashlytics.ktx)
                 api(libs.achep.bindin)
