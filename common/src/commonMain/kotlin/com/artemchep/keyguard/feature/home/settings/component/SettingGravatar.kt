@@ -14,6 +14,8 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetGravatar
 import com.artemchep.keyguard.common.usecase.PutGravatar
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
@@ -62,7 +64,8 @@ private fun SettingGravatar(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = {
             Icon(
                 imageVector = Icons.Outlined.AccountCircle,

@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.yubikey
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -40,6 +41,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultEmphasisAlpha
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
@@ -135,7 +137,7 @@ fun YubiKeyUsbCard(
                         targetState = isCapturing,
                     ) { capturing ->
                         if (capturing) {
-                            CircularProgressIndicator()
+                            KeyguardLoadingIndicator()
                         }
                     }
                     Spacer(
@@ -198,9 +200,8 @@ private fun YubiKeyCard(
     text: String,
     content: (@Composable () -> Unit)? = null,
 ) {
-    Surface(
+    Box(
         modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
     ) {
         Column(
             modifier = Modifier

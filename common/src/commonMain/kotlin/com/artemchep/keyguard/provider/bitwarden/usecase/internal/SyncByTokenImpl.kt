@@ -17,7 +17,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.Watchdog
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
@@ -36,7 +36,7 @@ import org.kodein.di.instance
 /**
  * @author Artem Chepurnyi
  */
-class SyncByTokenImpl(
+class SyncByBitwardenTokenImpl(
     private val logRepository: LogRepository,
     private val cipherEncryptor: CipherEncryptor,
     private val cryptoGenerator: CryptoGenerator,
@@ -44,10 +44,10 @@ class SyncByTokenImpl(
     private val getPasswordStrength: GetPasswordStrength,
     private val json: Json,
     private val httpClient: HttpClient,
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
     private val dbSyncer: DatabaseSyncer,
     private val watchdog: Watchdog,
-) : SyncByToken {
+) : SyncByBitwardenToken {
     companion object {
         private const val TAG = "SyncById.bitwarden"
     }

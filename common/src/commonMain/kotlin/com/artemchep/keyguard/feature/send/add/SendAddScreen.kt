@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.Checkbox
@@ -27,11 +28,14 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.add.AddScreenItems
 import com.artemchep.keyguard.feature.add.AddScreenScope
+import com.artemchep.keyguard.feature.add.AddStateItem
 import com.artemchep.keyguard.feature.add.AnyField
 import com.artemchep.keyguard.feature.add.ToolbarContent
 import com.artemchep.keyguard.feature.add.ToolbarContentItemErrSkeleton
+import com.artemchep.keyguard.feature.add.getAnyFieldShapeState
 import com.artemchep.keyguard.feature.home.vault.add.AddState
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -66,6 +70,12 @@ fun SendAddScreen(
             initialFocusRequested = !addScreenBehavior.autoShowKeyboard,
         )
     }
+    // Provide all the items to the shared
+    // scope for every item to access.
+    run {
+        val items = loadableState.getOrNull()?.items.orEmpty()
+        addScreenScope.updateItems(items)
+    }
     SendAddScreen(
         addScreenScope = addScreenScope,
         loadableState = loadableState,
@@ -81,6 +91,7 @@ fun SendAddScreen(
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -198,14 +209,20 @@ private fun LazyListScope.populateItemsContent(
                 .height(24.dp),
         )
     }
-    items(
-        items = state.items,
-        key = { it.id },
-    ) { item ->
+    val items = state.items
+    itemsIndexed(
+        items = items,
+        key = { index, item -> item.id },
+    ) { index, item ->
         with(addScreenScope) {
+            val shapeState = getAnyFieldShapeState(
+                list = items,
+                index = index,
+            )
             AnyField(
                 modifier = Modifier,
                 item = item,
+                shapeState = shapeState,
             )
         }
     }

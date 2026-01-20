@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.dirs.DirsService
+import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.Dispatchers
 import net.harawata.appdirs.AppDirsFactory
 import org.kodein.di.DirectDI
@@ -13,7 +14,7 @@ import java.io.OutputStream
 class DataDirectory(
 ) : DirsService {
     companion object {
-        private val APP_NAME = "keyguard"
+        private val APP_NAME = if (isRelease) "keyguard" else "keyguard-dev"
         private val APP_AUTHOR = "ArtemChepurnyi"
     }
 
@@ -29,12 +30,16 @@ class DataDirectory(
         appDirs.getUserConfigDir(APP_NAME, null, APP_AUTHOR, true)
     }
 
-    fun cache(): IO<String> = ioEffect(Dispatchers.IO) {
+    fun cache(): IO<String> = ioEffect(Dispatchers.IO) { cacheBlocking() }
+
+    fun cacheBlocking(): String = run {
         val appDirs = AppDirsFactory.getInstance()
         appDirs.getUserCacheDir(APP_NAME, null, APP_AUTHOR)
     }
 
-    fun downloads(): IO<String> = ioEffect(Dispatchers.IO) {
+    fun downloads(): IO<String> = ioEffect(Dispatchers.IO) { downloadsBlocking() }
+
+    fun downloadsBlocking(): String = kotlin.run {
         val appDirs = AppDirsFactory.getInstance()
         appDirs.getUserDownloadsDir(APP_NAME, null, APP_AUTHOR)
     }

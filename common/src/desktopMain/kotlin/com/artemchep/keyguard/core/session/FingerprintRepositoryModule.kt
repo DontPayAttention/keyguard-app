@@ -8,6 +8,7 @@ import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.bindBlocking
+import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
@@ -24,11 +25,17 @@ import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
+import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
+import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManagerImpl
+import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
+import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keychain.KeychainIds
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
@@ -59,11 +66,16 @@ import com.artemchep.keyguard.copy.DownloadClientDesktop
 import com.artemchep.keyguard.copy.DownloadManagerDesktop
 import com.artemchep.keyguard.copy.DownloadRepositoryDesktop
 import com.artemchep.keyguard.copy.DownloadTaskDesktop
+import com.artemchep.keyguard.copy.FileServiceJvm
+import com.artemchep.keyguard.copy.FileWatcherServiceJvm
 import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.PermissionServiceJvm
 import com.artemchep.keyguard.copy.PowerServiceJvm
 import com.artemchep.keyguard.copy.ReviewServiceJvm
 import com.artemchep.keyguard.copy.TextServiceJvm
+import com.artemchep.keyguard.core.session.BiometricStatusUseCaseImpl
+import com.artemchep.keyguard.core.store.DatabaseSqlManagerInFileJvm
+import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeBiometricCipherKeychain
@@ -241,6 +253,24 @@ class ClearDataAndroid(
     }
 }
 
+class CacheDirProviderJvm(
+    private val dataDirectory: DataDirectory,
+) : CacheDirProvider {
+    constructor(directDI: DirectDI) : this(
+        dataDirectory = directDI.instance(),
+    )
+
+    override suspend fun get(): File {
+        val path = dataDirectory.cache().bind()
+        return File(path)
+    }
+
+    override fun getBlocking(): File {
+        val path = dataDirectory.cacheBlocking()
+        return File(path)
+    }
+}
+
 fun diFingerprintRepositoryModule() = DI.Module(
     name = "com.artemchep.keyguard.core.session.repository::FingerprintRepository",
 ) {
@@ -248,6 +278,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
 
     bindProvider<LeContext>() {
         LeContext()
+    }
+    bindSingleton {
+        FlavorConfig(
+            isFreeAsBeer = false,
+        )
     }
     bindSingleton<BiometricStatusUseCase> {
         BiometricStatusUseCaseImpl(
@@ -264,6 +299,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<CacheDirProvider> {
+        CacheDirProviderJvm(
+            directDI = this,
+        )
+    }
 
     bindSingleton<GetLocale> {
         GetLocaleImpl(
@@ -274,9 +314,6 @@ fun diFingerprintRepositoryModule() = DI.Module(
         PutLocaleImpl(
             directDI = this,
         )
-    }
-    bindSingleton<GetSuggestions<Any?>> {
-        GetSuggestionsImpl()
     }
     bindSingleton<GetPurchased> {
         GetPurchasedImpl()
@@ -302,6 +339,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindSingleton<ConnectivityService> {
         ConnectivityServiceJvm(this)
     }
+    bindSingleton<FileWatcherService> {
+        FileWatcherServiceJvm(this)
+    }
     bindSingleton<PowerService> {
         PowerServiceJvm(this)
     }
@@ -313,6 +353,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
 //    }
     bindSingleton<TextService> {
         TextServiceJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<FileService> {
+        FileServiceJvm(
             directDI = this,
         )
     }
@@ -367,6 +412,27 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bind<KeyValueStore>("shared") with multiton { file: Files ->
         val m: KeyValueStore = instance(arg = file)
         m
+    }
+    bindSingleton<ExposedDatabaseManager> {
+        val dataDirectory: DataDirectory = instance()
+        val sqlManager = DatabaseSqlManagerInFileJvm<DatabaseExposed>(
+            fileIo = dataDirectory
+                .data()
+                .effectMap {
+                    File(it, "database_exposed.sqlite")
+                },
+        )
+
+        ExposedDatabaseManagerImpl(
+            logRepository = instance(),
+            cryptoGenerator = instance(),
+            settingsRepository = instance(),
+            generateMasterKeyUseCase = instance(),
+            generateMasterHashUseCase = instance(),
+            generateMasterSaltUseCase = instance(),
+            json = instance(),
+            sqlManager = sqlManager,
+        )
     }
     bindSingleton<LogRepositoryKotlin> {
         LogRepositoryKotlin()

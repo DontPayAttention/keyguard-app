@@ -13,13 +13,13 @@ kotlin {
     sourceSets {
         val jvmMain by getting {
             dependencies {
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material)
-                implementation(compose.material3)
-                implementation(compose.materialIconsExtended)
+                implementation(libs.jetbrains.compose.runtime)
+                implementation(libs.jetbrains.compose.foundation)
+                implementation(libs.jetbrains.compose.material)
+                implementation(libs.jetbrains.compose.material3)
+                implementation(libs.jetbrains.compose.material.icons.extended)
+                implementation(libs.jetbrains.compose.components.resources)
                 implementation(compose.desktop.currentOs)
-                implementation(compose.components.resources)
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.bouncycastle.bcprov)
                 implementation(libs.bouncycastle.bctls)
@@ -148,6 +148,19 @@ compose.desktop {
                 }
             }
         }
+
+        buildTypes {
+            release {
+                proguard {
+                    // Enabling the proguard would require us to grab the .jar of
+                    // the BouncyCastle library and strip out the signature due to this error:
+                    //
+                    // Exception in thread "main" java.lang.SecurityException:
+                    // SHA-256 digest error for org/bouncycastle/jce/provider/BouncyCastleProvider.class
+                    isEnabled = false
+                }
+            }
+        }
     }
 }
 
@@ -155,105 +168,55 @@ kotlin {
     jvmToolchain(libs.versions.jdk.get().toInt())
 }
 
-//
-// Flatpak
-//
+fun Tar.installPackageDistributable(
+    dependency: String,
+) {
+    val appVersion = libs.versions.appVersionName.get()
+    val osName = System.getProperty("os.name")
+        .lowercase()
+        .replace(" ", "")
+    val osArch = when (val prop = System.getProperty("os.arch")) {
+        "amd64" -> "x86_64"
+        else -> prop
+    }
 
-val flatpakDir = "$buildDir/flatpak"
-val resourcesDir = "$projectDir/src/jvmMain/resources"
+    from(tasks.named(dependency))
 
-tasks.register("prepareFlatpak") {
-    dependsOn("packageAppImage")
-    doLast {
-        delete {
-            delete("$flatpakDir/bin/")
-            delete("$flatpakDir/lib/")
-        }
-        copy {
-            from("$buildDir/compose/binaries/main/app/Keyguard/")
-            into("$flatpakDir/")
-            exclude("$buildDir/compose/binaries/main/app/Keyguard/lib/runtime/legal")
-        }
-        copy {
-            from("$resourcesDir/icon.png")
-            into("$flatpakDir/")
-        }
-        copy {
-            from("$resourcesDir/flatpak/manifest.yml")
-            into("$flatpakDir/")
-            rename {
-                "$appId.yml"
+    // Pack additional platform-specific files. For example for
+    // Linux we want to include the Flatpak files.
+    when (osName) {
+        "linux" -> {
+            val flatpakSources = project.file("flatpak")
+            from(flatpakSources) {
+                include("com.artemchep.keyguard.desktop")
+                into("Keyguard/share/applications")
+            }
+            from(flatpakSources) {
+                include("com.artemchep.keyguard.metainfo.xml")
+                into("Keyguard/share/metainfo")
+            }
+            from(flatpakSources) {
+                include("icon.svg")
+                // Rename happens on the fly during the copy
+                rename { "com.artemchep.keyguard.svg" }
+                into("Keyguard/share/icons/hicolor/scalable/apps")
             }
         }
-        copy {
-            from("$projectDir/src/jvmMain/resources/flatpak/icon.desktop")
-            into("$flatpakDir/")
-            rename {
-                "$appId.desktop"
-            }
+        else -> {
+            // Do nothing
         }
     }
+
+    archiveBaseName = "Keyguard"
+    archiveClassifier = "$appVersion-$osName-$osArch"
+    compression = Compression.GZIP
+    archiveExtension = "tar.gz"
 }
 
-tasks.register("bundleFlatpak") {
-    dependsOn("prepareFlatpak")
-    doLast {
-        exec {
-            workingDir(flatpakDir)
-            val buildCommand = listOf(
-                "flatpak-builder",
-                "--force-clean",
-                "--state-dir=build/flatpak-builder",
-                "--repo=build/flatpak-repo",
-                "build/flatpak-target",
-                "$appId.yml",
-            )
-            commandLine(buildCommand)
-        }
-        exec {
-            workingDir(flatpakDir)
-            val bundleCommand = listOf(
-                "flatpak",
-                "build-bundle",
-                "build/flatpak-repo",
-                "Keyguard.flatpak",
-                appId,
-            )
-            commandLine(bundleCommand)
-        }
-    }
+tasks.register<Tar>("packageDistributable") {
+    installPackageDistributable("createDistributable")
 }
 
-tasks.register("installFlatpak") {
-    dependsOn("prepareFlatpak")
-    doLast {
-        exec {
-            workingDir(flatpakDir)
-            val installCommand = listOf(
-                "flatpak-builder",
-                "--install",
-                "--user",
-                "--force-clean",
-                "--state-dir=build/flatpak-builder",
-                "--repo=build/flatpak-repo",
-                "build/flatpak-target",
-                "$appId.yml",
-            )
-            commandLine(installCommand)
-        }
-    }
-}
-
-tasks.register("runFlatpak") {
-    dependsOn("installFlatpak")
-    doLast {
-        exec {
-            val runCommand = listOf(
-                "flatpak",
-                "run",
-                appId,
-            )
-            commandLine(runCommand)
-        }
-    }
+tasks.register<Tar>("packageReleaseDistributable") {
+    installPackageDistributable("createReleaseDistributable")
 }

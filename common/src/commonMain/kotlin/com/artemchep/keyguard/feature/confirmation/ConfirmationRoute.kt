@@ -27,16 +27,20 @@ class ConfirmationRoute(
         sealed interface Item<out T> {
             val key: String
             val value: T
+            val enabled: Boolean
 
             data class BooleanItem(
                 override val key: String,
                 override val value: Boolean = false,
+                override val enabled: Boolean = true,
                 val title: String,
+                val text: String? = null,
             ) : Item<Boolean>
 
             data class StringItem(
                 override val key: String,
                 override val value: String = "",
+                override val enabled: Boolean = true,
                 val title: String,
                 val hint: String? = null,
                 val description: String? = null,
@@ -49,6 +53,7 @@ class ConfirmationRoute(
             ) : Item<String> {
                 enum class Type {
                     Text,
+                    URI,
                     Token,
                     Regex,
                     Command,
@@ -60,6 +65,7 @@ class ConfirmationRoute(
             data class EnumItem(
                 override val key: String,
                 override val value: String = "",
+                override val enabled: Boolean = true,
                 val items: List<Item>,
                 val docs: Map<String, Doc> = emptyMap(),
             ) : Item<String> {
@@ -79,6 +85,7 @@ class ConfirmationRoute(
             data class FileItem(
                 override val key: String,
                 override val value: File? = null,
+                override val enabled: Boolean = true,
                 val title: String,
             ) : Item<FileItem.File?> {
                 @LeParcelize

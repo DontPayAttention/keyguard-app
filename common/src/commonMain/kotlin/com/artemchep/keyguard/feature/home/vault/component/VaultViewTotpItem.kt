@@ -11,12 +11,15 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -37,7 +41,9 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import arrow.core.getOrElse
@@ -45,19 +51,17 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.CopyText
-import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.ui.AhContainer
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
-import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
-import com.artemchep.keyguard.ui.icons.IconBox
-import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
+import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
-import com.artemchep.keyguard.ui.tooltip.Tooltip
 import com.artemchep.keyguard.ui.totp.formatCode2
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.delay
@@ -106,32 +110,43 @@ fun VaultViewTotpItem(
 ) {
     val state by item.localStateFlow.collectAsState()
     val dropdown = state.dropdown
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
         elevation = item.elevation,
+        shapeState = item.shapeState,
         content = {
             FlatItemTextContent2(
                 title = {
                     Text(item.title)
                 },
-                text = {
-                    FlowRow {
-                        VaultViewTotpCodeContent(
-                            totp = item.totp,
-                            codes = state.codes,
-                        )
-                    }
-                },
             )
-        },
-        leading = {
-            IconBox(main = Icons.Outlined.KeyguardTwoFa)
+            Spacer(
+                modifier = Modifier
+                    .height(8.dp),
+            )
+            FlowRow(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                VaultViewTotpBadge2(
+                    copyText = item.copy,
+                    totpToken = item.totp,
+                )
+                ProvideTextStyle(MaterialTheme.typography.titleSmall) {
+                    VaultViewTotpBadge2(
+                        modifier = Modifier
+                            .heightIn(min = 32.dp),
+                        contentModifier = Modifier
+                            .alpha(MediumEmphasisAlpha),
+                        copyText = item.copy,
+                        totpToken = item.totp,
+                        showTimeout = false,
+                        offset = 1,
+                    )
+                }
+            }
         },
         trailing = {
-            VaultViewTotpBadge(
-                totpToken = item.totp,
-            )
-
             val onCopyAction = remember(dropdown) {
                 dropdown
                     .firstNotNullOfOrNull {
@@ -179,11 +194,15 @@ fun RowScope.VaultViewTotpBadge(
 @Composable
 fun VaultViewTotpBadge2(
     modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
     copyText: CopyText,
     totpToken: TotpToken,
+    showTimeout: Boolean = true,
+    offset: Int = 0,
 ) {
     val state by produceTotpCode(
         totpToken = totpToken,
+        offset = offset,
     )
 
     val tintColor = MaterialTheme.colorScheme
@@ -206,22 +225,35 @@ fun VaultViewTotpBadge2(
                 end = 4.dp,
                 top = 4.dp,
                 bottom = 4.dp,
-            ),
+            )
+            .then(contentModifier),
     ) {
         VaultViewTotpCodeContent(
             totp = totpToken,
             codes = (state as? VaultViewTotpItemBadgeState.Success?)
                 ?.codes,
         )
-
-        Spacer(
-            modifier = Modifier
-                .width(16.dp),
-        )
-
-        VaultViewTotpRemainderBadge(
-            state = state,
-        )
+        ExpandedIfNotEmptyForRow(
+            Unit.takeIf { showTimeout },
+        ) {
+            Row {
+                Spacer(
+                    modifier = Modifier
+                        .width(Dimens.buttonIconPadding),
+                )
+                VaultViewTotpRemainderBadge(
+                    state = state,
+                )
+            }
+        }
+        ExpandedIfNotEmptyForRow(
+            Unit.takeIf { !showTimeout },
+        ) {
+            Spacer(
+                modifier = Modifier
+                    .width(4.dp),
+            )
+        }
     }
 }
 
@@ -358,6 +390,7 @@ private fun RowScope.VaultViewTotpRemainderBadgeContent(
             CircularProgressIndicator(
                 modifier = circularProgressModifier,
                 progress = { progress },
+                trackColor = Color.Transparent,
                 color = LocalContentColor.current,
             )
             Spacer(Modifier.width(4.dp))
@@ -382,10 +415,11 @@ private fun RowScope.VaultViewTotpRemainderBadgeContent(
 @Composable
 private fun produceTotpCode(
     totpToken: TotpToken,
+    offset: Int = 0,
 ): State<VaultViewTotpItemBadgeState?> {
-    val getTotpCode by rememberInstance<GetTotpCode>()
-    return remember(totpToken) {
-        getTotpCode(totpToken)
+    val getTotpCode by rememberInstance<GetTotpCodeWithOffset>()
+    return remember(totpToken, offset) {
+        getTotpCode(totpToken, offset)
             .flatMapLatest {
                 // Format the totp code, so it's easier to
                 // read for the user.

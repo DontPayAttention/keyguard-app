@@ -31,7 +31,8 @@ import com.artemchep.keyguard.common.model.flatMap
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.ErrorView
-import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.ui.icons.FaviconIcon
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevation
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -40,12 +41,10 @@ import com.artemchep.keyguard.feature.search.sort.SortButton
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultProgressBar
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.focus.FocusRequester2
-import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
-import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
 import org.jetbrains.compose.resources.stringResource
@@ -134,6 +133,7 @@ fun ChangePasswordScreen(
         modifier = Modifier
             .pullRefresh(pullRefreshState)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             CustomToolbar(
@@ -200,11 +200,7 @@ fun ChangePasswordScreen(
             .flatMap { it.content }
         when (contentState) {
             is Loadable.Loading -> {
-                for (i in 1..3) {
-                    item("skeleton.$i") {
-                        SkeletonItem()
-                    }
-                }
+                skeletonItems()
             }
 
             is Loadable.Ok -> {
@@ -277,10 +273,11 @@ private fun AppItem(
     modifier: Modifier,
     item: AppPickerState.Item,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
+        shapeState = item.shapeState,
         leading = {
-            FaviconImage(
+            FaviconIcon(
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape),

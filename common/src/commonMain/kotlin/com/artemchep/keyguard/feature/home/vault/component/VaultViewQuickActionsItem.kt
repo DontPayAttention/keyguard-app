@@ -1,35 +1,29 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonElevation
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,8 +33,8 @@ import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.FlatItemAction
-import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.Stub
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.collections.immutable.ImmutableList
 
@@ -50,7 +44,8 @@ fun VaultViewQuickActionsItem(
     item: VaultViewItem.QuickActions,
 ) {
     HorizontalContextItems(
-        modifier = modifier,
+        modifier = modifier
+            .padding(bottom = 24.dp),
         items = item.actions,
     )
 }
@@ -59,27 +54,28 @@ fun VaultViewQuickActionsItem(
 fun HorizontalContextItems(
     modifier: Modifier = Modifier,
     items: ImmutableList<ContextItem>,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
+    border: BorderStroke? = null,
 ) {
-    Row(
+    FlowRow(
         modifier = modifier
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+            .padding(
+                start = Dimens.buttonHorizontalPadding,
+                end = Dimens.buttonHorizontalPadding,
+            ),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Spacer(
-            modifier = Modifier
-                .width(4.dp),
-        )
         items.forEach { i ->
             HorizontalContextItem(
-                modifier = Modifier
-                    .widthIn(max = DropdownMinWidth),
+                modifier = Modifier,
                 item = i,
+                colors = colors,
+                elevation = elevation,
+                border = border,
             )
         }
-        Spacer(
-            modifier = Modifier
-                .width(4.dp),
-        )
     }
 }
 
@@ -87,6 +83,9 @@ fun HorizontalContextItems(
 private fun HorizontalContextItem(
     modifier: Modifier = Modifier,
     item: ContextItem,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
+    border: BorderStroke? = null,
 ) = when (item) {
     is ContextItem.Section -> {
         Section(
@@ -107,44 +106,36 @@ private fun HorizontalContextItem(
         HorizontalFlatActionItem(
             modifier = modifier,
             item = item,
+            colors = colors,
+            elevation = elevation,
+            border = border,
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun HorizontalFlatActionItem(
     modifier: Modifier = Modifier,
     item: FlatItemAction,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
+    border: BorderStroke? = null,
 ) {
     val updatedOnClick by rememberUpdatedState(item.onClick)
-    val backgroundModifier = run {
-        val bg = Color.Transparent
-        val fg = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(1.dp)
-        Modifier
-            .background(fg.compositeOver(bg))
-    }
-    Row(
-        modifier = modifier
-            // Normal items have a small vertical padding,
-            // so add it here as well for consistency.
-            .padding(
-                vertical = 2.dp,
-            )
-            .clip(RoundedCornerShape(16.dp))
-            .then(backgroundModifier)
-            .clickable {
-                updatedOnClick?.invoke()
-            }
-            .minimumInteractiveComponentSize()
-            .padding(
-                horizontal = 8.dp,
-                vertical = 4.dp,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
+    Button(
+        modifier = modifier,
+        onClick = {
+            updatedOnClick?.invoke()
+        },
+        colors = colors,
+        shapes = ButtonDefaults.shapes(),
+        elevation = elevation,
+        border = border,
+        enabled = updatedOnClick != null,
     ) {
         HorizontalFlatActionContent(
             action = item,
-            compact = true,
         )
     }
 }
@@ -152,7 +143,6 @@ private fun HorizontalFlatActionItem(
 @Composable
 private fun RowScope.HorizontalFlatActionContent(
     action: FlatItemAction,
-    compact: Boolean = false,
 ) {
     CompositionLocalProvider(
         LocalContentColor provides LocalContentColor.current
@@ -167,7 +157,7 @@ private fun RowScope.HorizontalFlatActionContent(
         if ((action.icon != null && action.icon != Icons.Stub) || action.leading != null) {
             Box(
                 modifier = Modifier
-                    .size(24.dp),
+                    .size(ButtonDefaults.IconSize),
             ) {
                 if (action.icon != null) {
                     Icon(
@@ -179,40 +169,26 @@ private fun RowScope.HorizontalFlatActionContent(
             }
             Spacer(
                 modifier = Modifier
-                    .width(16.dp),
+                    .width(ButtonDefaults.IconSpacing),
             )
         }
         Column(
             modifier = Modifier,
             verticalArrangement = Arrangement.Center,
         ) {
-            FlatItemTextContent(
-                title = {
-                    Text(
-                        text = textResource(action.title),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                text = if (action.text != null) {
-                    // composable
-                    {
-                        Text(
-                            text = textResource(action.text),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            fontSize = 13.sp,
-                        )
-                    }
-                } else {
-                    null
-                },
-                compact = compact,
+            Text(
+                text = textResource(action.title),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-        }
-        if (action.trailing != null) {
-            Spacer(Modifier.width(8.dp))
-            action.trailing.invoke()
+            if (action.text != null) {
+                Text(
+                    text = textResource(action.text),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 13.sp,
+                )
+            }
         }
     }
 }

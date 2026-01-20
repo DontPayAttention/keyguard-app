@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,6 +48,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.model.AccountId
@@ -81,6 +83,9 @@ import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.formatH
 import com.artemchep.keyguard.common.model.ignores
 import com.artemchep.keyguard.common.model.titleH
+import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
+import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
+import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
@@ -152,16 +157,18 @@ import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
-import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
+import com.artemchep.keyguard.feature.home.vault.component.UrlAppStoreListings
 import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
+import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangeNameAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangePasswordAction
@@ -172,6 +179,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherEnableConfirmAccessA
 import com.artemchep.keyguard.feature.home.vault.util.cipherExportAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherMoveToFolderAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherSendAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
@@ -314,6 +322,9 @@ fun vaultViewScreenState(
         windowCoroutineScope = instance(),
         placeholderFactories = allInstances(),
         linkInfoExtractors = allInstances(),
+        iosAppAppStoreParser = instance(),
+        androidAppGooglePlayParser = instance(),
+        androidAppFDroidParser = instance(),
         mode = mode,
         contentColor = contentColor,
         disabledContentColor = disabledContentColor,
@@ -401,6 +412,9 @@ fun vaultViewScreenState(
     addCipherOpenedHistory: AddCipherOpenedHistory,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
     getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
+    iosAppAppStoreParser: IosAppAppStoreParser,
+    androidAppGooglePlayParser: AndroidAppGooglePlayParser,
+    androidAppFDroidParser: AndroidAppFDroidParser,
     windowCoroutineScope: WindowCoroutineScope,
     placeholderFactories: List<Placeholder.Factory>,
     linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
@@ -883,7 +897,7 @@ fun vaultViewScreenState(
                 shortcut@{
                     val visible = !visibilityGlobalSink.value.value
                     executeWithRePrompt(
-                        reprompt = visible && needsRePrompt
+                        reprompt = visible && needsRePrompt,
                     ) {
                         visibilityGlobalSink.value = Visibility.Event(
                             value = visible,
@@ -1062,6 +1076,16 @@ fun vaultViewScreenState(
                             },
                         )
                     }
+                    is AppMode.SavePassword -> {
+                        FlatItemAction(
+                            title = Res.string.password_save.wrap(),
+                            leading = icon(Icons.Outlined.Save),
+                            onClick = {
+                                val cipher = secretOrNull
+                                mode.onComplete(cipher)
+                            },
+                        )
+                    }
                 }
                 VaultViewState.Content.Cipher(
                     locked = bbb,
@@ -1114,6 +1138,9 @@ fun vaultViewScreenState(
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit && secretOrNull.login != null }
                             ?.verify(verify),
+                        cipherSendAction(
+                            ciphers = listOf(secretOrNull),
+                        ).takeIf { canAddSecret }?.verify(verify),
                         cipherCopyToAction(
                             copyCipherById = copyCipherById,
                             ciphers = listOf(secretOrNull),
@@ -1197,8 +1224,11 @@ fun vaultViewScreenState(
                         cipherIncompleteCheck = cipherIncompleteCheck,
                         getJustDeleteMeByUrl = getJustDeleteMeByUrl,
                         getJustGetMyDataByUrl = getJustGetMyDataByUrl,
+                        iosAppAppStoreParser = iosAppAppStoreParser,
+                        androidAppGooglePlayParser = androidAppGooglePlayParser,
+                        androidAppFDroidParser = androidAppFDroidParser,
                         verify = verify,
-                    ).toList(),
+                    ).toList().transformShapes(),
                 )
             }
         }
@@ -1256,8 +1286,73 @@ private fun RememberStateFlowScope.oh(
     cipherIncompleteCheck: CipherIncompleteCheck,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
     getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
+    iosAppAppStoreParser: IosAppAppStoreParser,
+    androidAppGooglePlayParser: AndroidAppGooglePlayParser,
+    androidAppFDroidParser: AndroidAppFDroidParser,
     verify: ((() -> Unit) -> Unit)?,
 ) = flow<VaultViewItem> {
+    val hasWiFi = kotlin.run {
+        val ssid = cipher.login?.username
+            ?: cipher.fields
+                .firstNotNullOfOrNull { field ->
+                    field.value?.takeIf { field.name == "WiFi SSID" }
+                        ?: field.value?.takeIf { field.name == "SSID" }
+                }
+        if (ssid.isNullOrBlank()) {
+            return@run false
+        }
+
+        val password = cipher.login?.password
+        val auth = cipher.fields
+            .firstNotNullOfOrNull { field ->
+                field.value
+                    ?.takeIf { field.name == "WiFi Authentication Type" }
+            }
+        val hidden = cipher.fields
+            .firstNotNullOfOrNull { field ->
+                field.value
+                    ?.takeIf { field.name == "WiFi Hidden" }
+            }
+        if (auth == null && hidden == null) {
+            return@run false
+        }
+
+        val specialChars = listOf(
+            '\\',
+            ';',
+            ',',
+            '"',
+            ':',
+        )
+        val payload = listOf(
+            "S" to ssid,
+            "T" to auth,
+            "P" to password,
+            "H" to hidden,
+        )
+            .mapNotNull { (key, value) ->
+                // Ignore empty value
+                if (value == null) {
+                    return@mapNotNull null
+                }
+
+                key to value
+            }
+            .joinToString(separator = ";") { (key, value) ->
+                val escapedValue = specialChars
+                    .fold(value) { v, char ->
+                        v.replace("$char", "\\$char")
+                    }
+                "$key:$escapedValue"
+            }
+        val qr = VaultViewItem.Qr(
+            id = "qr",
+            data = "WIFI:$payload;;",
+        )
+        emit(qr)
+        return@run true
+    }
+
     val cipherError = cipher.service.error
     if (cipherError != null && !cipherError.expired(cipher.revisionDate)) {
         val time = dateFormatter.formatDateTime(cipherError.revisionDate)
@@ -1536,21 +1631,28 @@ private fun RememberStateFlowScope.oh(
     if (cipherLogin != null) {
         val cipherLoginUsername = cipherLogin.username
         if (cipherLoginUsername != null) {
-            val usernameVariation = UsernameVariation2.of(
-                getGravatarUrl,
-                cipherLoginUsername,
-            )
+            val usernameVariation = if (hasWiFi) {
+                UsernameVariation2.Ssid
+            } else {
+                UsernameVariation2.of(
+                    getGravatarUrl,
+                    cipherLoginUsername,
+                )
+            }
+            val title = if (hasWiFi) {
+                translate(Res.string.ssid)
+            } else translate(Res.string.username)
             val model = create(
                 copy = copy,
                 id = "login.username",
                 accountId = account.id,
-                title = translate(Res.string.username),
+                title = title,
                 value = cipherLoginUsername,
                 shortcut = KeyShortcut(
                     Key.C,
                     isCtrlPressed = true,
                 ),
-                username = true,
+                username = !hasWiFi,
                 elevated = true,
                 leading = {
                     UsernameVariationIcon(usernameVariation = usernameVariation)
@@ -2109,9 +2211,12 @@ private fun RememberStateFlowScope.oh(
                 }
         }
     if (linkedApps.isNotEmpty()) {
+        val sectionText = if (linkedApps.size > 1) {
+            translate(Res.string.linked_apps)
+        } else translate(Res.string.linked_app)
         val section = VaultViewItem.Section(
             id = "link.app",
-            text = translate(Res.string.linked_apps),
+            text = sectionText,
         )
         emit(section)
         // items
@@ -2127,6 +2232,9 @@ private fun RememberStateFlowScope.oh(
                     cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                     getJustDeleteMeByUrl = getJustDeleteMeByUrl,
                     getJustGetMyDataByUrl = getJustGetMyDataByUrl,
+                    iosAppAppStoreParser = iosAppAppStoreParser,
+                    androidAppGooglePlayParser = androidAppGooglePlayParser,
+                    androidAppFDroidParser = androidAppFDroidParser,
                     executeCommand = executeCommand,
                     holder = holder,
                     id = id,
@@ -2151,9 +2259,12 @@ private fun RememberStateFlowScope.oh(
                 }
         }
     if (linkedWebsites.isNotEmpty()) {
+        val sectionText = if (linkedWebsites.size > 1) {
+            translate(Res.string.linked_uris)
+        } else translate(Res.string.linked_uri)
         val section = VaultViewItem.Section(
             id = "link.website",
-            text = translate(Res.string.linked_uris),
+            text = sectionText,
         )
         emit(section)
         // items
@@ -2169,6 +2280,9 @@ private fun RememberStateFlowScope.oh(
                     cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                     getJustDeleteMeByUrl = getJustDeleteMeByUrl,
                     getJustGetMyDataByUrl = getJustGetMyDataByUrl,
+                    iosAppAppStoreParser = iosAppAppStoreParser,
+                    androidAppGooglePlayParser = androidAppGooglePlayParser,
+                    androidAppFDroidParser = androidAppFDroidParser,
                     executeCommand = executeCommand,
                     holder = holder,
                     id = id,
@@ -2183,9 +2297,12 @@ private fun RememberStateFlowScope.oh(
             }
     }
     if (cipher.fields.isNotEmpty()) {
+        val sectionText = if (cipher.fields.size > 1) {
+            translate(Res.string.custom_fields)
+        } else translate(Res.string.custom_field)
         val section = VaultViewItem.Section(
             id = "custom",
-            text = translate(Res.string.custom_fields),
+            text = sectionText,
         )
         emit(section)
         // items
@@ -2194,7 +2311,7 @@ private fun RememberStateFlowScope.oh(
                 fun createAction(
                     value: Boolean,
                 ) = FlatItemAction(
-                    title = TextHolder.Value("Toggle value"),
+                    title = TextHolder.Res(Res.string.custom_field_toggle_boolean_value),
                     trailing = {
                         Switch(
                             checked = !value,
@@ -2366,10 +2483,62 @@ private fun RememberStateFlowScope.oh(
                 }
 
                 is DSecret.Attachment.Local -> {
-                    // TODO: Show local attachments.
+                    val downloadIo = kotlin.run {
+                        ioUnit()
+                    }
+                    val removeIo = kotlin.run {
+                        ioUnit()
+                    }
+
+                    val actualItem = createAttachmentItem(
+                        tag = DownloadInfoEntity2.AttachmentDownloadTag(
+                            localCipherId = cipher.id,
+                            remoteCipherId = cipher.service.remote?.id,
+                            attachmentId = attachment.id,
+                        ),
+                        selectionHandle = selectionHandle,
+                        sharingScope = sharingScope,
+                        attachment = attachment,
+                        launchViewCipherData = null,
+                        downloadManager = downloadManager,
+                        downloadIo = downloadIo,
+                        removeIo = removeIo,
+                        verify = verify,
+                    )
+                    val wrapperItem = VaultViewItem.Attachment(
+                        id = actualItem.key,
+                        item = actualItem,
+                    )
+                    emit(wrapperItem)
                 }
             }
         }
+    }
+
+    if (cipher.tags.isNotEmpty()) {
+        val sectionText = if (cipher.tags.size > 1) {
+            translate(Res.string.tags)
+        } else translate(Res.string.tag)
+        val section = VaultViewItem.Section(
+            id = "tags",
+            text = sectionText,
+        )
+        emit(section)
+
+        val f = VaultViewItem.Tags(
+            id = "tag.0",
+            tags = cipher.tags,
+            onClick = { tag ->
+                action {
+                    val route = VaultRoute.by(
+                        tag = tag,
+                    )
+                    val intent = NavigationIntent.NavigateToRoute(route)
+                    navigate(intent)
+                }
+            },
+        )
+        emit(f)
     }
 
     if (folder != null) {
@@ -2387,7 +2556,6 @@ private fun RememberStateFlowScope.oh(
                         name = it.name,
                         onClick = onClick {
                             val route = VaultRoute.by(
-                                translator = this@oh,
                                 folder = it.folder,
                             )
                             val intent = NavigationIntent.NavigateToRoute(route)
@@ -2397,7 +2565,6 @@ private fun RememberStateFlowScope.oh(
                 },
             onClick = onClick {
                 val route = VaultRoute.by(
-                    translator = this@oh,
                     folder = folder.folder,
                 )
                 val intent = NavigationIntent.NavigateToRoute(route)
@@ -2424,7 +2591,6 @@ private fun RememberStateFlowScope.oh(
                 title = collection.name,
                 onClick = onClick {
                     val route = VaultRoute.by(
-                        translator = this@oh,
                         collection = collection,
                     )
                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -2466,15 +2632,24 @@ private fun RememberStateFlowScope.oh(
     emit(s)
     val x = VaultViewItem.Label(
         id = "account",
-        text = annotate(
-            Res.string.vault_view_saved_to_label,
-            account.username to SpanStyle(
-                color = contentColor,
-            ),
-            account.host to SpanStyle(
-                color = contentColor,
-            ),
-        ),
+        text = if (account.username != null) {
+            annotate(
+                Res.string.vault_view_saved_to_label,
+                account.username to SpanStyle(
+                    color = contentColor,
+                ),
+                account.host to SpanStyle(
+                    color = contentColor,
+                ),
+            )
+        } else {
+            annotate(
+                Res.string.vault_view_saved_to_account_name_label,
+                account.host to SpanStyle(
+                    color = contentColor,
+                ),
+            )
+        },
     )
     emit(x)
     val createdDate = cipher.createdDate
@@ -2568,6 +2743,9 @@ private suspend fun RememberStateFlowScope.createUriItem(
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
     getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
+    iosAppAppStoreParser: IosAppAppStoreParser,
+    androidAppGooglePlayParser: AndroidAppGooglePlayParser,
+    androidAppFDroidParser: AndroidAppFDroidParser,
     executeCommand: ExecuteCommand,
     holder: Holder,
     id: String,
@@ -2632,6 +2810,9 @@ private suspend fun RememberStateFlowScope.createUriItem(
                         cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                         getJustDeleteMeByUrl = getJustDeleteMeByUrl,
                         getJustGetMyDataByUrl = getJustGetMyDataByUrl,
+                        iosAppAppStoreParser = iosAppAppStoreParser,
+                        androidAppGooglePlayParser = androidAppGooglePlayParser,
+                        androidAppFDroidParser = androidAppFDroidParser,
                         executeCommand = executeCommand,
                         uri = content.uri,
                         info = content.info,
@@ -2662,6 +2843,9 @@ private suspend fun RememberStateFlowScope.createUriItem(
         cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
         getJustDeleteMeByUrl = getJustDeleteMeByUrl,
         getJustGetMyDataByUrl = getJustGetMyDataByUrl,
+        iosAppAppStoreParser = iosAppAppStoreParser,
+        androidAppGooglePlayParser = androidAppGooglePlayParser,
+        androidAppFDroidParser = androidAppFDroidParser,
         executeCommand = executeCommand,
         uri = holder.uri.uri,
         info = holder.info,
@@ -2722,7 +2906,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                         contentDescription = null,
                     )
                 },
-                title = AnnotatedString(platformMarker.packageName),
+                title = AnnotatedString(platformMarker.bundleId),
                 matchTypeTitle = matchTypeTitle,
                 dropdown = dropdown,
                 overrides = overrides,
@@ -2743,7 +2927,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
             return VaultViewItem.Uri(
                 id = id,
                 icon = {
-                    FaviconImage(
+                    FaviconIcon(
                         modifier = Modifier
                             .size(24.dp)
                             .clip(CircleShape),
@@ -2877,6 +3061,9 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
     getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
+    iosAppAppStoreParser: IosAppAppStoreParser,
+    androidAppGooglePlayParser: AndroidAppGooglePlayParser,
+    androidAppFDroidParser: AndroidAppFDroidParser,
     executeCommand: ExecuteCommand,
     uri: String,
     info: List<LinkInfo>,
@@ -2919,17 +3106,10 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                                     navigate(intent)
                                 },
                             )
-                            this += FlatItemAction(
-                                icon = Icons.AutoMirrored.Outlined.Launch,
-                                title = Res.string.uri_action_launch_play_store_title.wrap(),
-                                trailing = {
-                                    ChevronIcon()
-                                },
-                                onClick = {
-                                    val intent =
-                                        NavigationIntent.NavigateToBrowser(platformMarker.playStoreUrl)
-                                    navigate(intent)
-                                },
+                            this += createUriContextAppStoreListingAndroid(
+                                androidAppGooglePlayParser = androidAppGooglePlayParser,
+                                androidAppFDroidParser = androidAppFDroidParser,
+                                platformMarker = platformMarker,
                             )
                         }
                         section {
@@ -2958,17 +3138,10 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                             )
                         }
                         section {
-                            this += FlatItemAction(
-                                icon = Icons.AutoMirrored.Outlined.Launch,
-                                title = Res.string.uri_action_launch_play_store_title.wrap(),
-                                trailing = {
-                                    ChevronIcon()
-                                },
-                                onClick = {
-                                    val intent =
-                                        NavigationIntent.NavigateToBrowser(platformMarker.playStoreUrl)
-                                    navigate(intent)
-                                },
+                            this += createUriContextAppStoreListingAndroid(
+                                androidAppGooglePlayParser = androidAppGooglePlayParser,
+                                androidAppFDroidParser = androidAppFDroidParser,
+                                platformMarker = platformMarker,
                             )
                         }
                         section {
@@ -2994,8 +3167,14 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             val dropdown = buildContextItems {
                 section {
                     this += copy.FlatItemAction(
-                        title = Res.string.copy_package_name.wrap(),
-                        value = platformMarker.packageName,
+                        title = Res.string.copy_bundle_id.wrap(),
+                        value = platformMarker.bundleId,
+                    )
+                }
+                section {
+                    this += createUriContextAppStoreListingIOS(
+                        iosAppAppStoreParser = iosAppAppStoreParser,
+                        platformMarker = platformMarker,
                     )
                 }
             }
@@ -3206,6 +3385,80 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             }
             return dropdown
         }
+    }
+}
+
+private fun RememberStateFlowScope.createUriContextAppStoreListingAndroid(
+    androidAppGooglePlayParser: AndroidAppGooglePlayParser,
+    androidAppFDroidParser: AndroidAppFDroidParser,
+    platformMarker: LinkInfoPlatform.Android,
+): ContextItem {
+    val androidGooglePlayStoreListingFlow = flow {
+        val info = androidAppGooglePlayParser(platformMarker.packageName)
+            .attempt()
+            .bind()
+        emit(info)
+    }
+    val androidFDroidStoreListingFlow = flow {
+        val infoEither = androidAppFDroidParser(platformMarker.packageName)
+            .attempt()
+            .bind()
+        emit(infoEither)
+    }
+    val listings = listOf(
+        VaultViewItem.Uri.AppStoreListing(
+            store = "Google Play",
+            state = androidGooglePlayStoreListingFlow,
+            onClick = {
+                val intent =
+                    NavigationIntent.NavigateToBrowser(platformMarker.playStoreUrl)
+                navigate(intent)
+            },
+        ),
+        VaultViewItem.Uri.AppStoreListing(
+            store = "F-Droid",
+            state = androidFDroidStoreListingFlow,
+            onClick = {
+                val intent =
+                    NavigationIntent.NavigateToBrowser(platformMarker.fDroidUrl)
+                navigate(intent)
+            },
+        ),
+    )
+    return ContextItem.Custom {
+        UrlAppStoreListings(
+            modifier = Modifier
+                .fillMaxWidth(),
+            listings = listings,
+        )
+    }
+}
+
+private fun RememberStateFlowScope.createUriContextAppStoreListingIOS(
+    iosAppAppStoreParser: IosAppAppStoreParser,
+    platformMarker: LinkInfoPlatform.IOS,
+): ContextItem {
+    val iosAppStoreListingFlow = flow {
+        val info = iosAppAppStoreParser(platformMarker.bundleId)
+            .attempt()
+            .bind()
+        emit(info)
+    }
+    val listings = listOf(
+        VaultViewItem.Uri.AppStoreListing(
+            store = "App Store",
+            state = iosAppStoreListingFlow,
+            onClick = {
+                // Do nothing
+            },
+        ),
+    )
+    return ContextItem.Custom {
+        UrlAppStoreListings(
+            modifier = Modifier
+                .fillMaxWidth(),
+            listings = listings,
+        )
     }
 }
 

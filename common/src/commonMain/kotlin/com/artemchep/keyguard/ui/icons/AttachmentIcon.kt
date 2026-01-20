@@ -60,9 +60,9 @@ fun AttachmentIcon(
             "webp",
             "heic",
             "heif",
-            -> {
+                -> {
                 // We can display a preview of a file.
-                AttachmentIconImpl(
+                AttachmentIconFilePreview(
                     modifier = Modifier
                         .size(24.dp)
                         .clip(CircleShape)
@@ -108,10 +108,19 @@ fun AttachmentIcon(
 }
 
 @Composable
-expect fun AttachmentIconImpl(
-    uri: String? = null,
+private fun AttachmentIconFilePreview(
     modifier: Modifier = Modifier,
-)
+    uri: String? = null,
+) {
+    AsyncIcon(
+        imageModel = { uri },
+        modifier = modifier,
+        contentDescription = "Attachment",
+        errorImageVector = Icons.Outlined.KeyguardAttachment,
+    )
+}
+
+const val DEFAULT_HUE = 0.8f
 
 @Immutable
 data class AccentColors(
@@ -123,12 +132,12 @@ fun generateAccentColorsByAccountId(
     accountId: String,
 ) = generateAccentColors(
     seed = accountId,
-    saturation = 0.7f,
+    saturation = 0.7f, // similar to what Bitwarden has
 )
 
 fun generateAccentColors(
     seed: String,
-    saturation: Float = 0.5f,
+    saturation: Float = DEFAULT_HUE,
 ): AccentColors {
     val hue = run {
         val r = FNV.fnv1_32(seed).rem(60)
@@ -141,8 +150,8 @@ fun generateAccentColors(
 }
 
 fun generateAccentColors(
-    hue: Float,
-    saturation: Float = 0.5f,
+    hue: Float, // 0f..360f
+    saturation: Float = DEFAULT_HUE,
 ): AccentColors {
     val accentLight = Color.hsv(
         hue = hue,
@@ -152,7 +161,7 @@ fun generateAccentColors(
     val accentDark = Color.hsv(
         hue = hue,
         saturation = saturation,
-        value = 0.7f,
+        value = 0.8f,
     )
     return AccentColors(
         light = accentLight,

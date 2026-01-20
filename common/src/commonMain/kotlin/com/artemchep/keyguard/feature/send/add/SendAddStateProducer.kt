@@ -16,6 +16,7 @@ import arrow.core.partially2
 import arrow.optics.Lens
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.create.CreateSendRequest
@@ -30,6 +31,7 @@ import com.artemchep.keyguard.common.model.create.maxAccessCount
 import com.artemchep.keyguard.common.model.create.note
 import com.artemchep.keyguard.common.model.create.password
 import com.artemchep.keyguard.common.model.create.text
+import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.requiresPremium
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
@@ -62,6 +64,7 @@ import com.artemchep.keyguard.feature.auth.common.util.validatedInteger
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.add.createItem
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -185,6 +188,7 @@ fun produceSendAddScreenState(
 
     val ownershipFlow = produceOwnershipFlow(
         args = args,
+        getAccounts = getAccounts,
         getProfiles = getProfiles,
         getSends = getSends,
         getCiphers = getCiphers,
@@ -422,6 +426,7 @@ fun produceSendAddScreenState(
 
 private suspend fun RememberStateFlowScope.produceOwnershipFlow(
     args: SendAddRoute.Args,
+    getAccounts: GetAccounts,
     getProfiles: GetProfiles,
     getSends: GetSends,
     getCiphers: GetCiphers,
@@ -431,18 +436,18 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
 
     val ownershipHandle = ownershipHandle(
         key = "new_send",
-        profilesFlow = getProfiles()
-            .run {
-                // If premium, then filter the options to
-                // only include the accounts with active premium.
-                if (requiresPremium) {
-                    this
-                        .map { profiles ->
-                            profiles
-                                .filter { it.premium }
-                        }
-                } else this
-            },
+        profilesFlow = combine(
+            getAccounts(),
+            getProfiles(),
+        ) { accounts, profiles ->
+            profiles
+                .filter { profile ->
+                    val account = accounts.firstOrNull(AccountId(profile.accountId))
+                        ?: return@filter false
+                    account.type == AccountType.BITWARDEN &&
+                            (profile.premium == true || !requiresPremium)
+                }
+        },
         ciphersFlow = getCiphers(),
         initialValue = args.initialValue
             ?.let { value ->
@@ -497,6 +502,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                                 ),
                                 flags = flags,
                                 accountId = account.value,
+                                accountType = AccountType.BITWARDEN,
                             ),
                         ),
                     ) { result ->

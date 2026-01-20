@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.DGeneratorWordlist
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.AddWordlist
 import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.GetWordlists
@@ -17,6 +18,7 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
+import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListState
 import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
 import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
 import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewRoute
@@ -26,6 +28,7 @@ import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -34,6 +37,7 @@ import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -171,7 +175,7 @@ fun produceWordlistListState(
         }
     val itemsFlow = itemsRawFlow
         .map { list ->
-            list
+            val items = list
                 .map {
                     val icon = VaultItemIcon.TextIcon.short(it.name)
 
@@ -230,7 +234,11 @@ fun produceWordlistListState(
                             .partially1(it),
                     )
                 }
-                .toPersistentList()
+                .toList()
+            val itemsReShaped = items
+                .mapListShape()
+                .toImmutableList()
+            itemsReShaped
         }
         .crashlyticsAttempt { e ->
             val msg = "Failed to get the wordlist list!"

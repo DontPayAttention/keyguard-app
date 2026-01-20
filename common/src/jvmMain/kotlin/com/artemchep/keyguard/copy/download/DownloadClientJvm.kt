@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
+import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import io.ktor.http.HttpStatusCode
@@ -59,10 +60,6 @@ abstract class DownloadClientJvm(
         private const val DOWNLOAD_PROGRESS_POOLING_PERIOD_MS = 1000L
     }
 
-    fun interface CacheDirProvider {
-        suspend fun get(): File
-    }
-
     private data class PoolEntry(
         val subscribersCount: Int,
         val downloadId: String,
@@ -80,9 +77,8 @@ abstract class DownloadClientJvm(
 
     constructor(
         directDI: DirectDI,
-        cacheDirProvider: CacheDirProvider,
     ) : this(
-        cacheDirProvider = cacheDirProvider,
+        cacheDirProvider = directDI.instance(),
         cryptoGenerator = directDI.instance(),
         windowCoroutineScope = directDI.instance(),
         okHttpClient = directDI.instance(),
@@ -109,6 +105,7 @@ abstract class DownloadClientJvm(
         url: String,
         tag: DownloadInfoEntity2.AttachmentDownloadTag,
         file: File,
+        fileData: ByteArray? = null,
         fileKey: ByteArray? = null,
         cancelFlow: Flow<Unit>,
     ): Flow<DownloadProgress> = flow {
@@ -120,6 +117,7 @@ abstract class DownloadClientJvm(
                         val internalFlow = internalFileLoader(
                             url = url,
                             file = file,
+                            fileData = fileData,
                             fileKey = fileKey,
                         )
 
@@ -212,6 +210,7 @@ abstract class DownloadClientJvm(
     private fun internalFileLoader(
         url: String,
         file: File,
+        fileData: ByteArray? = null,
         fileKey: ByteArray? = null,
     ): Flow<DownloadProgress> = flow {
         val exists = file.exists()
@@ -243,10 +242,22 @@ abstract class DownloadClientJvm(
             }
 
             val result = try {
-                flap(
-                    src = url,
-                    dst = cacheFile,
-                )
+                if (fileData != null) {
+                    cacheFile.delete()
+                    cacheFile.parentFile?.mkdirs()
+                    cacheFile.writeBytes(fileData)
+
+                    val result = cacheFile
+                        .right()
+                    DownloadProgress.Complete(
+                        result = result,
+                    )
+                } else {
+                    flap(
+                        src = url,
+                        dst = cacheFile,
+                    )
+                }
             } catch (e: Exception) {
                 // Delete cache file in case of
                 // an error.

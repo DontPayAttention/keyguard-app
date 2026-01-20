@@ -12,9 +12,11 @@ import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSecretDuplicateGroup
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.canEdit
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
 import com.artemchep.keyguard.common.usecase.CipherToolbox
@@ -51,6 +53,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherMergeInto
 import com.artemchep.keyguard.feature.home.vault.util.cipherMergeIntoAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherMoveToFolderAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherSendAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
@@ -313,6 +316,9 @@ fun produceDuplicatesListState(
                                 onClickPasskey = {
                                     null
                                 },
+                                onClickPassword = {
+                                    null
+                                },
                             )
                             item
                         }
@@ -323,9 +329,18 @@ fun produceDuplicatesListState(
                         )
                     }
                     allItems += groupedItems
+                        .mapIndexed { index, item ->
+                            val shapeState = getShapeState(
+                                list = groupedItems,
+                                index = index,
+                                predicate = { _, _ -> true },
+                            ) and ShapeState.START
+                            item.withShape(shapeState)
+                        }
                     allItems += VaultItem2.Button(
                         id = "merge." + group.id,
                         title = translate(Res.string.ciphers_action_merge_title),
+                        shapeState = ShapeState.END,
                         leading = icon(Icons.Outlined.Merge, Icons.Outlined.Add),
                         onClick = {
                             val ciphers = groupedItems
@@ -524,6 +539,12 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     if (canWrite && selectedCiphersAllSameType && selectedCiphers.size > 1) {
         actions += cipherMergeIntoAction(
             cipherMerge = toolbox.cipherMerge,
+            ciphers = selectedCiphers,
+        ).verify(verify)
+    }
+
+    if (canWrite) {
+        actions += cipherSendAction(
             ciphers = selectedCiphers,
         ).verify(verify)
     }

@@ -45,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
@@ -58,6 +59,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.platform.leDisplayCutout
@@ -70,6 +72,11 @@ import com.artemchep.keyguard.ui.scrollbar.ColumnScrollbar
 import com.artemchep.keyguard.ui.scrollbar.LazyColumnScrollbar
 import com.artemchep.keyguard.ui.selection.SelectionBar
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
+import com.artemchep.keyguard.ui.theme.Dimen
+import com.artemchep.keyguard.ui.theme.Dimens
+import com.artemchep.keyguard.ui.theme.GlobalExpressive
+import com.artemchep.keyguard.ui.theme.LocalDimens
+import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
@@ -77,8 +84,6 @@ import kotlin.math.log10
 
 val screenMaxWidth = 768.dp
 val screenMaxWidthCompact = 480.dp
-private val screenPaddingTop = 8.dp
-private val screenPaddingBottom = 8.dp
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -96,7 +101,9 @@ fun ScaffoldLazyColumn(
     floatingActionButton: @Composable FabScope.() -> Unit = {},
     floatingActionButtonPosition: FabPosition = FabPosition.End,
     pullRefreshState: PullRefreshState? = null,
+    expressive: Boolean = LocalExpressive.current,
     containerColor: Color = LocalSurfaceColor.current,
+    provideContentUserScrollEnabled: () -> Boolean = { true },
     contentColor: Color = contentColorFor(containerColor),
     contentWindowInsets: WindowInsets = scaffoldContentWindowInsets,
     overlay: @Composable OverlayScope.() -> Unit = {},
@@ -116,60 +123,65 @@ fun ScaffoldLazyColumn(
     }
     val translationYAnimatedState = animateFloatStateOneWayAsState(translationYState)
 
-    Scaffold(
-        modifier = modifier,
-        topBar = topBar,
-        bottomBar = bottomBar,
-        snackbarHost = snackbarHost,
-        floatingActionButton = {
-            val expandedState = topAppBarScrollBehavior.rememberFabExpanded()
-            val scope = remember(
-                floatingActionState,
-                expandedState,
-            ) {
-                MutableFabScope(
-                    state = floatingActionState,
-                    expanded = expandedState,
-                )
-            }
-            floatingActionButton(scope)
-        },
-        floatingActionButtonPosition = floatingActionButtonPosition,
-        containerColor = containerColor,
-        contentColor = contentColor,
-        contentWindowInsets = contentWindowInsets,
-    ) { contentPadding ->
-        val contentPaddingWithFab = calculatePaddingWithFab(
-            contentPadding = contentPadding,
-            fabState = floatingActionState,
-        )
-        val contentPaddingState = rememberUpdatedState(contentPaddingWithFab)
-        LazyColumnScrollbar(
-            modifier = Modifier
-                .fillMaxSize()
-                .consumeWindowInsets(contentWindowInsets),
-            contentPadding = contentPadding,
-            listState = listState,
-        ) {
-            LazyColumn(
+    ProvideScaffoldLocalValues(
+        expressive = expressive,
+    ) {
+        Scaffold(
+            modifier = modifier,
+            topBar = topBar,
+            bottomBar = bottomBar,
+            snackbarHost = snackbarHost,
+            floatingActionButton = {
+                val expandedState = topAppBarScrollBehavior.rememberFabExpanded()
+                val scope = remember(
+                    floatingActionState,
+                    expandedState,
+                ) {
+                    MutableFabScope(
+                        state = floatingActionState,
+                        expanded = expandedState,
+                    )
+                }
+                floatingActionButton(scope)
+            },
+            floatingActionButtonPosition = floatingActionButtonPosition,
+            containerColor = containerColor,
+            contentColor = contentColor,
+            contentWindowInsets = contentWindowInsets,
+        ) { contentPadding ->
+            val contentPaddingWithFab = calculatePaddingWithFab(
+                contentPadding = contentPadding,
+                fabState = floatingActionState,
+            )
+            val contentPaddingState = rememberUpdatedState(contentPaddingWithFab)
+            LazyColumnScrollbar(
                 modifier = Modifier
                     .fillMaxSize()
-                    .graphicsLayer {
-                        translationY = translationYAnimatedState.value
-                    },
-                verticalArrangement = listVerticalArrangement,
-                contentPadding = contentPaddingWithFab,
-                state = listState,
+                    .consumeWindowInsets(contentWindowInsets),
+                contentPadding = contentPadding,
+                listState = listState,
             ) {
-                listContent()
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            translationY = translationYAnimatedState.value
+                        },
+                    verticalArrangement = listVerticalArrangement,
+                    contentPadding = contentPaddingWithFab,
+                    state = listState,
+                    userScrollEnabled = provideContentUserScrollEnabled(),
+                ) {
+                    listContent()
+                }
             }
+            val overlayScope = remember(contentPaddingState) {
+                MutableOverlayScope(
+                    contentPadding = contentPaddingState,
+                )
+            }
+            overlay(overlayScope)
         }
-        val overlayScope = remember(contentPaddingState) {
-            MutableOverlayScope(
-                contentPadding = contentPaddingState,
-            )
-        }
-        overlay(overlayScope)
     }
 }
 
@@ -184,7 +196,9 @@ fun ScaffoldColumn(
     floatingActionState: State<FabState?> = rememberUpdatedState(newValue = null),
     floatingActionButton: @Composable FabScope.() -> Unit = {},
     floatingActionButtonPosition: FabPosition = FabPosition.End,
+    expressive: Boolean = LocalExpressive.current,
     containerColor: Color = LocalSurfaceColor.current,
+    provideContentUserScrollEnabled: () -> Boolean = { true },
     contentColor: Color = contentColorFor(containerColor),
     contentWindowInsets: WindowInsets = scaffoldContentWindowInsets,
     overlay: @Composable OverlayScope.() -> Unit = {},
@@ -194,70 +208,116 @@ fun ScaffoldColumn(
     columnScrollState: ScrollState = rememberScrollState(),
     columnContent: @Composable ColumnScope.() -> Unit,
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = topBar,
-        bottomBar = bottomBar,
-        snackbarHost = snackbarHost,
-        floatingActionButton = {
-            val expandedState = topAppBarScrollBehavior.rememberFabExpanded()
-            val scope = remember(
-                floatingActionState,
-                expandedState,
-            ) {
-                MutableFabScope(
-                    state = floatingActionState,
-                    expanded = expandedState,
-                )
-            }
-            floatingActionButton(scope)
-        },
-        floatingActionButtonPosition = floatingActionButtonPosition,
-        containerColor = containerColor,
-        contentColor = contentColor,
-        contentWindowInsets = contentWindowInsets,
-    ) { contentPadding ->
-        val contentPaddingWithFab = calculatePaddingWithFab(
-            contentPadding = contentPadding,
-            fabState = floatingActionState,
-        )
-        val contentPaddingState = rememberUpdatedState(contentPaddingWithFab)
-        ColumnScrollbar(
-            modifier = Modifier
-                .fillMaxSize()
-                .consumeWindowInsets(contentWindowInsets),
-            state = columnScrollState,
-            contentPadding = contentPadding,
-        ) {
-            Box(
-                modifier = columnModifier
-                    .fillMaxSize()
-                    .verticalScroll(columnScrollState)
-                    .padding(contentPaddingWithFab),
-            ) {
-                Column(
-                    modifier = Modifier
-                        .widthIn(max = screenMaxWidth),
-                    verticalArrangement = columnVerticalArrangement,
-                    horizontalAlignment = columnHorizontalAlignment,
+    ProvideScaffoldLocalValues(
+        expressive = expressive,
+    ) {
+        Scaffold(
+            modifier = modifier,
+            topBar = topBar,
+            bottomBar = bottomBar,
+            snackbarHost = snackbarHost,
+            floatingActionButton = {
+                val expandedState = topAppBarScrollBehavior.rememberFabExpanded()
+                val scope = remember(
+                    floatingActionState,
+                    expandedState,
                 ) {
-                    columnContent()
+                    MutableFabScope(
+                        state = floatingActionState,
+                        expanded = expandedState,
+                    )
+                }
+                floatingActionButton(scope)
+            },
+            floatingActionButtonPosition = floatingActionButtonPosition,
+            containerColor = containerColor,
+            contentColor = contentColor,
+            contentWindowInsets = contentWindowInsets,
+        ) { contentPadding ->
+            val contentPaddingWithFab = calculatePaddingWithFab(
+                contentPadding = contentPadding,
+                fabState = floatingActionState,
+            )
+            val contentPaddingState = rememberUpdatedState(contentPaddingWithFab)
+            ColumnScrollbar(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .consumeWindowInsets(contentWindowInsets),
+                state = columnScrollState,
+                contentPadding = contentPadding,
+            ) {
+                Box(
+                    modifier = columnModifier
+                        .fillMaxSize()
+                        .verticalScroll(columnScrollState, enabled = provideContentUserScrollEnabled())
+                        .padding(contentPaddingWithFab),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .widthIn(max = screenMaxWidth),
+                        verticalArrangement = columnVerticalArrangement,
+                        horizontalAlignment = columnHorizontalAlignment,
+                    ) {
+                        columnContent()
+                    }
                 }
             }
+            val overlayScope = remember(contentPaddingState) {
+                MutableOverlayScope(
+                    contentPadding = contentPaddingState,
+                )
+            }
+            overlay(overlayScope)
         }
-        val overlayScope = remember(contentPaddingState) {
-            MutableOverlayScope(
-                contentPadding = contentPaddingState,
-            )
-        }
-        overlay(overlayScope)
     }
 }
 
+@Composable
+fun ProvideScaffoldLocalValues(
+    expressive: Boolean,
+    content: @Composable () -> Unit,
+) {
+    val expressive = expressive && GlobalExpressive.current
+    val dimens = calculateDimens(
+        expressive = expressive,
+    )
+    CompositionLocalProvider(
+        LocalDimens provides dimens,
+        LocalExpressive provides expressive,
+        content = content,
+    )
+}
+
+@Composable
+private fun calculateDimens(
+    expressive: Boolean = LocalExpressive.current,
+): Dimen {
+    val dimens = remember(expressive) {
+        val surfaceHorizontalPadding: Dp
+        val contentHorizontalPadding: Dp
+        if (expressive) {
+            surfaceHorizontalPadding = 16.dp
+            contentHorizontalPadding = 24.dp
+        } else {
+            surfaceHorizontalPadding = 8.dp
+            contentHorizontalPadding = 16.dp
+        }
+        Dimen.normal().copy(
+            contentPadding = surfaceHorizontalPadding,
+            textHorizontalPadding = contentHorizontalPadding,
+        )
+    }
+    return dimens
+}
+
+@Composable
 private fun calculatePaddingWithFab(
     contentPadding: PaddingValues,
     fabState: State<FabState?>,
 ) = run {
+    val dimens = LocalDimens.current
+    val screenPaddingTop = dimens.contentPadding
+    val screenPaddingBottom = dimens.contentPadding
     val fabHeight = 56.dp
     val fabPadding = fabHeight + 16.dp * 2
     val extraPadding = if (fabState.value != null) {
@@ -431,10 +491,11 @@ fun OverlayScope.DefaultProgressBar(
     modifier: Modifier = Modifier,
     visible: Boolean,
 ) {
+    val topPadding = Dimens.contentPadding
     val contentPadding = contentPadding
-    val finalPadding = remember(contentPadding) {
+    val finalPadding = remember(topPadding, contentPadding) {
         derivedStateOf {
-            val p = PaddingValues(top = screenPaddingTop)
+            val p = PaddingValues(top = topPadding)
             contentPadding.value - p
         }
     }

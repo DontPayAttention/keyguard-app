@@ -2,6 +2,8 @@ package com.artemchep.keyguard.feature.home.settings.accounts
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.FilePresent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import arrow.core.partially1
@@ -25,15 +27,18 @@ import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.feature.auth.AccountViewRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountItem
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.BetaBadge
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SyncSupervisorImpl
 import com.artemchep.keyguard.ui.buildContextItems
@@ -54,8 +59,11 @@ import org.kodein.di.direct
 import org.kodein.di.instance
 
 @Composable
-fun accountListScreenState(): AccountListStateWrapper = with(localDI().direct) {
+fun accountListScreenState(
+    rootRouterName: String,
+): AccountListStateWrapper = with(localDI().direct) {
     accountListScreenState(
+        rootRouterName = rootRouterName,
         queueSyncById = instance(),
         syncSupervisor = instance(),
         removeAccountById = instance(),
@@ -69,6 +77,7 @@ fun accountListScreenState(): AccountListStateWrapper = with(localDI().direct) {
 
 @Composable
 fun accountListScreenState(
+    rootRouterName: String,
     queueSyncById: QueueSyncById,
     syncSupervisor: SupervisorRead,
     removeAccountById: RemoveAccountById,
@@ -267,7 +276,7 @@ fun accountListScreenState(
                             val route = AccountViewRoute(it.id)
                             val intent = NavigationIntent.Composite(
                                 listOf(
-                                    NavigationIntent.PopById("accounts"),
+                                    NavigationIntent.PopById(rootRouterName),
                                     NavigationIntent.NavigateToRoute(route),
                                 ),
                             )
@@ -315,11 +324,43 @@ fun accountListScreenState(
         getCanAddAccount(),
     ) { items, selection, canAddAccount ->
         AccountListStateWrapper { onAddAccount ->
+            val addNewAccountOptions = if (canAddAccount && selection == null) {
+                buildContextItems {
+                    this += FlatItemAction(
+                        leading = icon(Icons.Outlined.Cloud),
+                        title = TextHolder.Value(AccountType.BITWARDEN.fullName),
+                        text = TextHolder.Res(Res.string.addaccount_description_short_bitwarden_text),
+                        trailing = if (AccountType.BITWARDEN.beta) {
+                            // composable
+                            {
+                                BetaBadge()
+                            }
+                        } else null,
+                        onClick = onAddAccount
+                            .partially1(AccountType.BITWARDEN),
+                    )
+                    this += FlatItemAction(
+                        leading = icon(Icons.Outlined.FilePresent),
+                        title = TextHolder.Value(AccountType.KEEPASS.fullName),
+                        text = TextHolder.Res(Res.string.addaccount_description_short_keepass_text),
+                        trailing = if (AccountType.KEEPASS.beta) {
+                            // composable
+                            {
+                                BetaBadge()
+                            }
+                        } else null,
+                        onClick = onAddAccount
+                            .partially1(AccountType.KEEPASS),
+                    )
+                }
+            } else emptyList()
             AccountListState(
                 selection = selection,
                 items = items,
                 isLoading = false,
+                addNewAccountOptions = addNewAccountOptions,
                 onAddNewAccount = onAddAccount
+                    .partially1(AccountType.BITWARDEN)
                     .takeIf { canAddAccount && selection == null },
             )
         }

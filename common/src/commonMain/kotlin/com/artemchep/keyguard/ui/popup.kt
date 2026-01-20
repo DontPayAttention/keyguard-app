@@ -11,14 +11,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -233,35 +236,44 @@ private fun BasicPopup(
         val maxWidth = 560.dp
         val verticalInsets = WindowInsets.leSystemBars
             .union(WindowInsets.leIme)
-        Surface(
-            modifier = Modifier
-                .windowInsetsPadding(verticalInsets)
-                .consumeWindowInsets(verticalInsets)
-                .widthIn(
-                    min = 280.dp,
-                    max = maxWidth,
-                )
-                .pointerInput(onDismissRequest) {
-                    detectTapGestures(
-                        onPress = {
-                            // Workaround to disable clicks on Surface background
-                            // https://github.com/JetBrains/compose-jb/issues/2581
-                        },
-                    )
-                }
-                .then(contentModifier)
-                .graphicsLayer {
-                    graphicsModifier(this, alpha, scale)
-                },
-            shape = shape,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 0.dp,
-            shadowElevation = 1.dp,
+        Box(
+            modifier = Modifier,
         ) {
-            Column(
-                modifier = Modifier,
+            Surface(
+                modifier = Modifier
+                    .windowInsetsPadding(verticalInsets)
+                    .consumeWindowInsets(verticalInsets)
+                    .widthIn(
+                        min = 280.dp,
+                        max = maxWidth,
+                    )
+                    .fillMaxWidth(0.9f)
+                    .pointerInput(onDismissRequest) {
+                        detectTapGestures(
+                            onPress = {
+                                // Workaround to disable clicks on Surface background
+                                // https://github.com/JetBrains/compose-jb/issues/2581
+                            },
+                        )
+                    }
+                    .then(contentModifier)
+                    .graphicsLayer {
+                        graphicsModifier(this, alpha, scale)
+                    },
+                shape = shape,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                tonalElevation = 0.dp,
+                shadowElevation = 1.dp,
             ) {
-                content()
+                CompositionLocalProvider(
+                    LocalAbsoluteTonalElevation provides 16.dp,
+                ) {
+                    Column(
+                        modifier = Modifier,
+                    ) {
+                        content()
+                    }
+                }
             }
         }
     }

@@ -65,6 +65,7 @@ import org.kodein.di.android.closestDI
 import org.kodein.di.instance
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
+import androidx.core.net.toUri
 
 class KeyguardClipboardService : Service(), DIAware {
     companion object {
@@ -74,8 +75,10 @@ class KeyguardClipboardService : Service(), DIAware {
             context: Context,
             cipherName: String?,
             totpToken: TotpToken,
+            autoCopy: Boolean,
         ) = kotlin.run {
             val args = Args.CopyTotpCode(
+                autoCopy = autoCopy,
                 cipherName = cipherName,
                 token = totpToken.raw,
             )
@@ -87,8 +90,9 @@ class KeyguardClipboardService : Service(), DIAware {
             cipherName: String?,
             value: String,
             concealed: Boolean,
+            autoCopy: Boolean,
         ) = kotlin.run {
-            val args = Args.CopyValue(cipherName, value, concealed)
+            val args = Args.CopyValue(autoCopy = autoCopy, cipherName, value, concealed)
             getIntent(context, args)
         }
 
@@ -98,11 +102,46 @@ class KeyguardClipboardService : Service(), DIAware {
         ) = Intent(context, KeyguardClipboardService::class.java).apply {
             putExtra(KEY_ARGUMENTS, args)
         }
+
+        //
+        // Notification channel
+        //
+
+        fun createNotificationChannel(
+            context: Context,
+            clipboardService: ClipboardService,
+        ): String {
+            val channelImportance = if (clipboardService.hasCopyNotification()) {
+                NotificationManager.IMPORTANCE_DEFAULT
+            } else {
+                NotificationManager.IMPORTANCE_HIGH
+            }
+            val channel = kotlin.run {
+                val id = context.getString(R.string.notification_clipboard_channel_id)
+                val name = context.getString(R.string.notification_clipboard_channel_name)
+                NotificationChannel(id, name, channelImportance)
+            }
+            channel.enableVibration(false)
+            val audioUri = getAudioUri(context)
+            val audioAttributes = AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .build()
+            channel.setSound(audioUri, audioAttributes)
+            val nm = context.getSystemService<NotificationManager>()!!
+            nm.createNotificationChannel(channel)
+            return channel.id
+        }
+
+        private fun getAudioUri(context: Context) =
+            "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${R.raw.silence}"
+                .toUri()
     }
 
     sealed interface Args : Parcelable {
         @Parcelize
         data class CopyValue(
+            val autoCopy: Boolean,
             val cipherName: String?,
             val value: String,
             val concealed: Boolean,
@@ -110,6 +149,7 @@ class KeyguardClipboardService : Service(), DIAware {
 
         @Parcelize
         data class CopyTotpCode(
+            val autoCopy: Boolean,
             val cipherName: String?,
             val token: String,
         ) : Args
@@ -124,6 +164,7 @@ class KeyguardClipboardService : Service(), DIAware {
         val value: String,
         val text: String = value,
         val concealed: Boolean,
+        val autoCopy: Boolean,
         val expiration: Instant? = null,
     ) {
         enum class Type {
@@ -188,6 +229,7 @@ class KeyguardClipboardService : Service(), DIAware {
             cipherName = args.cipherName,
             value = args.value,
             concealed = args.concealed,
+            autoCopy = args.autoCopy,
         )
         return flowOf(event)
     }
@@ -210,6 +252,7 @@ class KeyguardClipboardService : Service(), DIAware {
                     value = it.code,
                     text = it.formatCodeStr(),
                     concealed = false,
+                    autoCopy = args.autoCopy,
                     expiration = expiration,
                 )
             }
@@ -229,7 +272,10 @@ class KeyguardClipboardService : Service(), DIAware {
                 }
             }
             .mapLatest { event ->
-                performCopyToClipboard(event)
+                val autoCopy = event.autoCopy
+                if (autoCopy) {
+                    performCopyToClipboard(event)
+                }
                 notify(
                     notificationId = notificationId,
                     event = event,
@@ -260,6 +306,7 @@ class KeyguardClipboardService : Service(), DIAware {
                         name = event.cipherName,
                         text = event.text,
                         value = event.value,
+                        autoCopy = event.autoCopy,
                         expiration = expiration - now,
                         alertOnlyOnce = alertOnlyOnce,
                     )
@@ -276,6 +323,7 @@ class KeyguardClipboardService : Service(), DIAware {
                 name = event.cipherName,
                 text = event.text,
                 value = event.value,
+                autoCopy = event.autoCopy,
                 expiration = null,
                 alertOnlyOnce = false,
             )
@@ -360,6 +408,7 @@ class KeyguardClipboardService : Service(), DIAware {
         name: String?,
         text: String,
         value: String,
+        autoCopy: Boolean,
         expiration: Duration?,
         alertOnlyOnce: Boolean,
         ongoing: Boolean = true,
@@ -379,9 +428,16 @@ class KeyguardClipboardService : Service(), DIAware {
             else -> R.drawable.ic_number_9_plus
         }
 
-        val contentTitle = when (type) {
-            CopyValueEvent.Type.TOTP -> org.jetbrains.compose.resources.getString(Res.string.copied_otp_code)
-            CopyValueEvent.Type.VALUE -> org.jetbrains.compose.resources.getString(Res.string.copied_value)
+        val contentTitle = if (autoCopy) {
+            when (type) {
+                CopyValueEvent.Type.TOTP -> org.jetbrains.compose.resources.getString(Res.string.copied_otp_code)
+                CopyValueEvent.Type.VALUE -> org.jetbrains.compose.resources.getString(Res.string.copied_value)
+            }
+        } else {
+            when (type) {
+                CopyValueEvent.Type.TOTP -> org.jetbrains.compose.resources.getString(Res.string.found_otp_code)
+                CopyValueEvent.Type.VALUE -> org.jetbrains.compose.resources.getString(Res.string.found_value)
+            }
         }
         val contentText = kotlin.run {
             val suffix = expiration
@@ -430,7 +486,7 @@ class KeyguardClipboardService : Service(), DIAware {
         }
 
         val channelId = createNotificationChannel()
-        val audioUri = getAudioUri()
+        val audioUri = getAudioUri(this)
         return NotificationCompat.Builder(this, channelId)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentTitle(contentTitle)
@@ -446,29 +502,8 @@ class KeyguardClipboardService : Service(), DIAware {
             .build()
     }
 
-    private fun createNotificationChannel(): String {
-        val channelImportance = if (clipboardService.hasCopyNotification()) {
-            NotificationManager.IMPORTANCE_DEFAULT
-        } else {
-            NotificationManager.IMPORTANCE_HIGH
-        }
-        val channel = kotlin.run {
-            val id = getString(R.string.notification_clipboard_channel_id)
-            val name = getString(R.string.notification_clipboard_channel_name)
-            NotificationChannel(id, name, channelImportance)
-        }
-        channel.enableVibration(false)
-        val audioUri = getAudioUri()
-        val audioAttributes = AudioAttributes.Builder()
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-            .build()
-        channel.setSound(audioUri, audioAttributes)
-        val nm = getSystemService<NotificationManager>()!!
-        nm.createNotificationChannel(channel)
-        return channel.id
-    }
-
-    private fun getAudioUri() =
-        Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + applicationContext.packageName + "/" + R.raw.silence)
+    private fun createNotificationChannel(): String = createNotificationChannel(
+        context = this,
+        clipboardService = clipboardService,
+    )
 }

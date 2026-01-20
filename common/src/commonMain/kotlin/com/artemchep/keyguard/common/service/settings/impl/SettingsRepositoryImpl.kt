@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepositor
 import com.artemchep.keyguard.common.service.settings.entity.VersionLogEntity
 import com.artemchep.keyguard.common.service.settings.entity.of
 import com.artemchep.keyguard.common.service.settings.entity.toDomain
+import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -38,6 +39,7 @@ import kotlin.time.Duration
 class SettingsRepositoryImpl(
     private val store: KeyValueStore,
     private val json: Json,
+    private val base64Service: Base64Service,
 ) : SettingsReadWriteRepository {
     companion object {
         private const val KEY_AUTOFILL_DEFAULT_MATCH_DETECTION = "autofill.default_match_detection"
@@ -46,6 +48,7 @@ class SettingsRepositoryImpl(
         private const val KEY_AUTOFILL_RESPECT_AUTOFILL_OFF = "autofill.respect_autofill_off"
         private const val KEY_AUTOFILL_SAVE_REQUEST = "autofill.save_request"
         private const val KEY_AUTOFILL_SAVE_URI = "autofill.save_uri"
+        private const val KEY_AUTOFILL_ADVERTISE_PASSKEYS_SUPPORT = "autofill.advertise_passkeys_support"
         private const val KEY_AUTOFILL_COPY_TOTP = "autofill.copy_totp"
         private const val KEY_VAULT_PERSIST = "vault_persist"
         private const val KEY_VAULT_REBOOT = "vault_reboot"
@@ -78,11 +81,13 @@ class SettingsRepositoryImpl(
         private const val KEY_FONT = "font"
         private const val KEY_THEME = "theme"
         private const val KEY_THEME_USE_AMOLED_DARK = "theme_use_amoled_dark"
+        private const val KEY_THEME_M3_EXPRESSIVE = "theme_m3_expressive"
         private const val KEY_ONBOARDING_LAST_VISIT = "onboarding_last_visit"
         private const val KEY_KEEP_SCREEN_ON = "keep_screen_on"
         private const val KEY_GRAVATAR = "gravatar"
         private const val KEY_COLORS = "colors"
         private const val KEY_LOCALE = "locale"
+        private const val KEY_DATABASE_EXPOSED_KEY = "database_exposed_key"
 
         private const val NONE_DURATION = -1L
     }
@@ -104,6 +109,9 @@ class SettingsRepositoryImpl(
 
     private val autofillSaveUriPref =
         store.getBoolean(KEY_AUTOFILL_SAVE_URI, false)
+
+    private val advertisePasskeysSupportPref =
+        store.getBoolean(KEY_AUTOFILL_ADVERTISE_PASSKEYS_SUPPORT, true)
 
     private val autofillCopyTotpPref =
         store.getBoolean(KEY_AUTOFILL_COPY_TOTP, true)
@@ -174,6 +182,9 @@ class SettingsRepositoryImpl(
     private val themeUseAmoledDarkPref =
         store.getBoolean(KEY_THEME_USE_AMOLED_DARK, false)
 
+    private val themeM3Expressive =
+        store.getBoolean(KEY_THEME_M3_EXPRESSIVE, true)
+
     private val keepScreenOnPref =
         store.getBoolean(KEY_KEEP_SCREEN_ON, true)
 
@@ -232,6 +243,21 @@ class SettingsRepositoryImpl(
             defaultValue = null,
         )
 
+    private val databaseExposedPref =
+        store.getObject<ByteArray?>(
+            KEY_DATABASE_EXPOSED_KEY,
+            defaultValue = null,
+            serialize = { keyRaw ->
+                keyRaw
+                    ?.let(base64Service::encodeToString)
+                    .orEmpty()
+            },
+            deserialize = { keyBase64 ->
+                if (keyBase64.isEmpty()) return@getObject null
+                keyBase64.let(base64Service::decode)
+            },
+        )
+
     private val internalPrefKeys = setOf(
         KEY_WRITE_ACCESS,
         KEY_DEBUG_PREMIUM,
@@ -239,6 +265,7 @@ class SettingsRepositoryImpl(
         KEY_CACHE_PREMIUM,
         KEY_ONBOARDING_LAST_VISIT,
         KEY_VERSION_LOG,
+        KEY_DATABASE_EXPOSED_KEY,
     )
 
     private val allPrefs by lazy {
@@ -292,6 +319,7 @@ class SettingsRepositoryImpl(
     constructor(directDI: DirectDI) : this(
         store = directDI.instance<Files, KeyValueStore>(arg = Files.SETTINGS),
         json = directDI.instance(),
+        base64Service = directDI.instance(),
     )
 
     override fun getPrefs(
@@ -356,6 +384,11 @@ class SettingsRepositoryImpl(
 
     override fun setAutofillSaveUri(saveUri: Boolean) = autofillSaveUriPref
         .setAndCommit(saveUri)
+
+    override fun getAdvertisePasskeysSupport() = advertisePasskeysSupportPref
+
+    override fun setAdvertisePasskeysSupport(advertisePasskeysSupport: Boolean) = advertisePasskeysSupportPref
+        .setAndCommit(advertisePasskeysSupport)
 
     override fun getAutofillSaveUri() = autofillSaveUriPref
 
@@ -526,6 +559,11 @@ class SettingsRepositoryImpl(
 
     override fun getThemeUseAmoledDark() = themeUseAmoledDarkPref
 
+    override fun setThemeM3Expressive(expressive: Boolean) = themeM3Expressive
+        .setAndCommit(expressive)
+
+    override fun getThemeM3Expressive() = themeM3Expressive
+
     override fun setKeepScreenOn(keepScreenOn: Boolean) = keepScreenOnPref
         .setAndCommit(keepScreenOn)
 
@@ -572,4 +610,9 @@ class SettingsRepositoryImpl(
         .map { locale ->
             locale.takeUnless { it.isEmpty() }
         }
+
+    override fun setExposedDatabaseKey(key: ByteArray?) = databaseExposedPref
+        .setAndCommit(key)
+
+    override fun getExposedDatabaseKey() = databaseExposedPref
 }

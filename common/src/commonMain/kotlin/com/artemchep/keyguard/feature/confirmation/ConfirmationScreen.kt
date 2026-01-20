@@ -30,6 +30,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -49,6 +50,7 @@ import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposab
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AutofillButton
+import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatItemLayout
@@ -120,7 +122,14 @@ fun ConfirmationScreen(
                     ) {
                         items.forEach { item ->
                             key(item.key) {
+                                val itemModifier = if (item.enabled) {
+                                    Modifier
+                                } else {
+                                    Modifier
+                                        .alpha(DisabledEmphasisAlpha)
+                                }
                                 ConfirmationItem(
+                                    modifier = itemModifier,
                                     item = item,
                                 )
                             }
@@ -218,10 +227,20 @@ private fun ConfirmationBooleanItem(
             )
         },
         content = {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Column {
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (item.text != null) {
+                    Text(
+                        text = item.text,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LocalContentColor.current
+                            .combineAlpha(MediumEmphasisAlpha),
+                    )
+                }
+            }
         },
         onClick = {
             val newValue = !item.value
@@ -342,7 +361,7 @@ private fun ConfirmationEnumItem(
     ) {
         FlowRow(
             modifier = Modifier
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -389,7 +408,7 @@ private fun ConfirmationEnumItem(
                 val updatedOnLearnMore by rememberUpdatedState(doc.onLearnMore)
                 TextButton(
                     modifier = Modifier
-                        .padding(horizontal = 4.dp),
+                        .padding(horizontal = 12.dp),
                     enabled = updatedOnLearnMore != null,
                     onClick = {
                         updatedOnLearnMore?.invoke()
@@ -413,17 +432,17 @@ private fun ConfirmationEnumItemItem(
         modifier = modifier,
         checked = item.selected,
         leading =
-        if (item.icon != null) {
-            // composable
-            {
-                Icon(
-                    item.icon,
-                    null,
-                )
-            }
-        } else {
-            null
-        },
+            if (item.icon != null) {
+                // composable
+                {
+                    Icon(
+                        item.icon,
+                        null,
+                    )
+                }
+            } else {
+                null
+            },
         title = item.title,
         text = item.text,
         onClick = item.onClick,

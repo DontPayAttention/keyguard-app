@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -25,6 +26,8 @@ import com.artemchep.keyguard.android.closestActivityOrNull
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
 import com.artemchep.keyguard.feature.apppicker.flowOfInstalledAppsAnyOf
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.LeContext
@@ -44,6 +47,7 @@ import org.kodein.di.instance
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
+import androidx.core.net.toUri
 
 actual fun settingAutofillProvider(
     directDI: DirectDI,
@@ -97,14 +101,23 @@ fun settingAutofillProvider(
                 } else {
                     null
                 },
-                platformWarning = platformWarning,
-            )
+                footer = {
+                    ExpandedIfNotEmpty(
+                        valueOrNull = platformWarning
+                            .takeIf { enabled },
+                    ) {
+                        SettingAutofillPlatformWarning(
+                            platformWarning = it,
+                        )
+                    }
 
-            ExpandedIfNotEmpty(
-                valueOrNull = isChromeInstalled.takeIf { it },
-            ) {
-                SettingAutofillChromeNativeAutofillWarning()
-            }
+                    ExpandedIfNotEmpty(
+                        valueOrNull = isChromeInstalled.takeIf { it },
+                    ) {
+                        SettingAutofillChromeNativeAutofillWarning()
+                    }
+                },
+            )
         }
     }
 
@@ -112,9 +125,10 @@ fun settingAutofillProvider(
 private fun SettingAutofill(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
-    platformWarning: AutofillPlatformWarning?,
+    footer: @Composable ColumnScope.() -> Unit,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.AutoAwesome),
         trailing = {
             Switch(
@@ -133,16 +147,9 @@ private fun SettingAutofill(
                 text = stringResource(Res.string.pref_item_autofill_service_text),
             )
         },
+        footer = footer,
         onClick = onCheckedChange?.partially1(!checked),
     )
-
-    ExpandedIfNotEmpty(
-        valueOrNull = platformWarning.takeIf { checked },
-    ) {
-        SettingAutofillPlatformWarning(
-            platformWarning = it,
-        )
-    }
 }
 
 @Composable
@@ -234,7 +241,7 @@ private sealed interface AutofillPlatformWarning {
             } catch (e: Exception) {
                 val genericIntent = Intent(
                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.parse("package:$packageName"),
+                    "package:$packageName".toUri(),
                 )
                 kotlin.runCatching {
                     context.startActivity(genericIntent)

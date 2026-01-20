@@ -1,12 +1,16 @@
 package com.artemchep.keyguard
 
 import android.content.Context
+import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import coil3.SingletonImageLoader
 import com.artemchep.bindin.bindBlock
 import com.artemchep.keyguard.android.BaseApp
+import com.artemchep.keyguard.android.coil3.AppIconFetcher
+import com.artemchep.keyguard.android.coil3.AppIconKeyer
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.worker.AttachmentDownloadAllWorker
 import com.artemchep.keyguard.android.passkeysModule
@@ -15,6 +19,8 @@ import com.artemchep.keyguard.android.util.ShortcutInfo
 import com.artemchep.keyguard.billing.BillingManager
 import com.artemchep.keyguard.billing.BillingManagerImpl
 import com.artemchep.keyguard.common.AppWorker
+import com.artemchep.keyguard.common.di.imageLoaderModule
+import com.artemchep.keyguard.common.di.setFromDi
 import com.artemchep.keyguard.common.io.*
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.Screen
@@ -26,6 +32,7 @@ import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.model.PersistedSession
+import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.worker.Wrker
@@ -46,10 +53,30 @@ class Main : BaseApp(), DIAware {
     override val di by DI.lazy {
         import(androidXModule(this@Main))
         import(diFingerprintRepositoryModule())
-        import(passkeysModule())
-        bind<BillingManager>() with singleton {
+        if (Build.VERSION.SDK_INT >= 34) {
+            import(passkeysModule())
+        }
+        val imageLoaderModule = kotlin.run {
+            val packageManager = packageManager
+            imageLoaderModule { directDI ->
+                val appIconFetcher = AppIconFetcher.Factory(
+                    googlePlayParser = directDI.instance(),
+                    packageManager = packageManager,
+                    getWebsiteIcons = directDI.instance(),
+                )
+                add(appIconFetcher)
+                add(AppIconKeyer())
+            }
+        }
+        import(imageLoaderModule)
+        bindSingleton<BillingManager> {
             BillingManagerImpl(
                 context = this@Main,
+            )
+        }
+        bindSingleton {
+            FlavorConfig(
+                isFreeAsBeer = BuildConfig.FLAVOR == "none",
             )
         }
     }
@@ -70,6 +97,10 @@ class Main : BaseApp(), DIAware {
 
     @OptIn(ExperimentalTime::class)
     override fun onCreate() {
+        // Construct the image loader singleton to match what
+        // we have set in the application's DI.
+        SingletonImageLoader.setFromDi(di)
+
         super.onCreate()
         val logRepository: LogRepository by instance()
         val getVaultSession: GetVaultSession by instance()
@@ -185,7 +216,8 @@ class Main : BaseApp(), DIAware {
                     if (screenLock) {
                         getVaultSession()
                     } else {
-                        emptyFlow()
+                        val emptyVaultSession = MasterSession.Empty()
+                        flowOf(emptyVaultSession)
                     }
                 }
                 .map { session ->
@@ -212,7 +244,7 @@ class Main : BaseApp(), DIAware {
                 }
                 .filter { it is Screen.Off }
                 .onEach {
-                    val lockReason = TextHolder.Res(Res.string.lock_reason_inactivity)
+                    val lockReason = TextHolder.Res(Res.string.lock_reason_screen_off)
                     clearVaultSession(LockReason.TIMEOUT, lockReason)
                         .attempt()
                         .launchIn(this)

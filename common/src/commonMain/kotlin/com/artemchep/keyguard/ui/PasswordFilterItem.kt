@@ -3,6 +3,7 @@ package com.artemchep.keyguard.ui
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -50,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.isUnspecified
@@ -68,6 +71,8 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
@@ -297,14 +302,11 @@ fun FlatDropdownLayout(
             val onDismissRequest = {
                 isContentDropdownExpanded = false
             }
-            DropdownMenu(
+            KeyguardDropdownMenu(
                 expanded = isContentDropdownExpanded,
                 onDismissRequest = onDismissRequest,
-                modifier = Modifier
-                    .widthIn(min = DropdownMinWidth),
             ) {
-                val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                dropdown?.invoke(scope)
+                dropdown?.invoke(this)
             }
         },
         actions = actions,
@@ -355,6 +357,10 @@ fun <T> ColumnScope.DropdownMenuExpandableContainer(
                 dropdownScope.DropdownMenuItemFlatLayout(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(
+                            horizontal = 8.dp,
+                        )
+                        .clip(MaterialTheme.shapes.medium)
                         .clickable {
                             maximized = true
                         },
@@ -483,6 +489,21 @@ fun FlatItemLayout(
             .padding(paddingValues),
         color = contentColor,
     ) {
+        val shape = MaterialTheme.shapes.medium
+        val shapeBottomCornerDp by kotlin.run {
+            val target = if (actions.isEmpty()) {
+                16.dp
+            } else {
+                flatItemSmallCornerSizeDp
+            }
+            animateDpAsState(targetValue = target)
+        }
+
+        val shapeWithBottomCorners = shape.copy(
+            bottomStart = CornerSize(shapeBottomCornerDp),
+            bottomEnd = CornerSize(shapeBottomCornerDp),
+        )
+
         val backgroundModifier = kotlin.run {
             // Check if there's actually a background color
             // to render.
@@ -500,28 +521,13 @@ fun FlatItemLayout(
                 .background(fg.compositeOver(bg))
         }
 
-        val shape = MaterialTheme.shapes.medium
-        val shapeBottomCornerDp by kotlin.run {
-            val target = if (actions.isEmpty()) {
-                16.dp
-            } else {
-                flatItemSmallCornerSizeDp
-            }
-            animateDpAsState(targetValue = target)
-        }
-
         val haptic by rememberUpdatedState(LocalHapticFeedback.current)
         val updatedOnClick by rememberUpdatedState(onClick)
         val updatedOnLongClick by rememberUpdatedState(onLongClick)
 
         Row(
             modifier = Modifier
-                .clip(
-                    shape.copy(
-                        bottomStart = CornerSize(shapeBottomCornerDp),
-                        bottomEnd = CornerSize(shapeBottomCornerDp),
-                    ),
-                )
+                .clip(shapeWithBottomCorners)
                 .then(backgroundModifier)
                 .then(
                     if ((onClick != null || onLongClick != null) && enabled) {
@@ -704,20 +710,22 @@ fun RowScope.FlatItemActionContent(
 }
 
 @Composable
+fun defaultAvatarColor() = LocalContentColor.current
+    .copy(alpha = 0.05f * LocalContentColor.current.alpha)
+
+@Composable
 fun Avatar(
     modifier: Modifier = Modifier,
-    color: Color = LocalContentColor.current
-        .let {
-            it.copy(alpha = 0.05f * LocalContentColor.current.alpha)
-        },
+    color: Color = defaultAvatarColor(),
+    shape: Shape = MaterialTheme.shapes.medium,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val contentColor = LocalContentColor.current.copy(alpha = DisabledEmphasisAlpha)
     Box(
         modifier = modifier
             .size(36.dp)
-            .clip(MaterialTheme.shapes.medium)
+            .clip(shape)
             .background(color),
+        contentAlignment = Alignment.Center,
     ) {
         content()
     }
@@ -728,21 +736,29 @@ fun Avatar(
 fun AvatarBuilder(
     modifier: Modifier = Modifier,
     icon: VaultItemIcon,
-    accent: Color,
+    accent: Color = Color.Unspecified,
     active: Boolean,
     badge: @Composable () -> Unit,
 ) = Box(
     modifier = modifier,
 ) {
     val avatarColor = accent
-        .takeIf {
+        .takeIf { color ->
             val fits = icon is VaultItemIcon.VectorIcon ||
                     icon is VaultItemIcon.TextIcon
-            fits && active
+            fits && active && color.isSpecified
         }
-        ?: MaterialTheme.colorScheme.surfaceColorAtElevationSemi(
-            LocalAbsoluteTonalElevation.current + 8.dp,
-        )
+        ?.let { color ->
+            MaterialTheme.colorScheme.background
+                .combineAlpha(0.25f)
+                .compositeOver(
+                    background = color,
+                )
+        }
+        ?: MaterialTheme.colorScheme
+            .surfaceColorAtElevationSemi(
+                elevation = LocalAbsoluteTonalElevation.current + 8.dp,
+            )
     Avatar(
         color = avatarColor,
     ) {

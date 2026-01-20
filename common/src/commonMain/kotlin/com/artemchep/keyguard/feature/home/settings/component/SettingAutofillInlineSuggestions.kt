@@ -11,11 +11,14 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAutofillInlineSuggestions
 import com.artemchep.keyguard.common.usecase.PutAutofillInlineSuggestions
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.hasAutofillInlineSuggestions
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
@@ -67,7 +70,22 @@ private fun SettingAutofillInlineSuggestions(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemLayoutExpressive(
+        shapeState = LocalSettingItemShape.current,
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_autofill_inline_suggestions_title),
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_autofill_inline_suggestions_text),
+                    )
+                },
+            )
+        },
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
@@ -78,16 +96,6 @@ private fun SettingAutofillInlineSuggestions(
                     onCheckedChange = onCheckedChange,
                 )
             }
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_autofill_inline_suggestions_title),
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(Res.string.pref_item_autofill_inline_suggestions_text),
-            )
         },
         onClick = onCheckedChange?.partially1(!checked),
     )

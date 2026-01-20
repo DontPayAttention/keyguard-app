@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.home.settings
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -15,6 +16,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ShapeState
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.home.settings.component.SettingComponent
@@ -26,10 +29,13 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAboutTeamPr
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutTelegramProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingApkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAppIconsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutofillBlockUriProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillCopyTotpProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillDefaultMatchDetectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillInlineSuggestionsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillManualSelectionProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPasskeysEnabledProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPrivilegedAppProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillRespectAutofillOffProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillSaveRequestProvider
@@ -88,6 +94,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocal
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsDebug
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsPlayStoreProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingThemeExpressiveProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeUseAmoledDarkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutLandscapeProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutPortraitProvider
@@ -105,6 +112,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.theme.GlobalExpressive
+import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import kotlinx.collections.immutable.toImmutableList
@@ -125,6 +134,9 @@ object Setting {
     const val AUTOFILL_RESPECT_AUTOFILL_OFF = "autofill_respect_autofill_off"
     const val AUTOFILL_SAVE_REQUEST = "autofill_save_request"
     const val AUTOFILL_SAVE_URI = "autofill_save_uri"
+    const val AUTOFILL_PASSKEYS = "autofill_passkeys"
+    const val AUTOFILL_BLOCK_URI = "autofill_block_uri"
+    const val AUTOFILL_PRIVILEGED_APPS = "autofill_privileged_apps"
     const val AUTOFILL_COPY_TOTP = "autofill_copy_totp"
     const val NAV_ANIMATION = "nav_animation"
     const val NAV_LABEL = "nav_label"
@@ -132,6 +144,7 @@ object Setting {
     const val LOCALE = "locale"
     const val COLOR_SCHEME = "color_scheme"
     const val COLOR_SCHEME_AMOLED_DARK = "color_scheme_amoled_dark"
+    const val COLOR_SCHEME_EXPRESSIVE = "color_scheme_expressive"
     const val COLOR_ACCENT = "color_accent"
     const val MASTER_PASSWORD = "master_password"
     const val PERMISSION_DETAILS = "permission_details" // screen
@@ -201,6 +214,10 @@ object Setting {
     const val KEEP_SCREEN_ON = "keep_screen_on"
 }
 
+val LocalSettingItemShape = staticCompositionLocalOf<Int> {
+    ShapeState.ALL
+}
+
 val LocalSettingItemArgs = staticCompositionLocalOf<Any?> {
     null
 }
@@ -214,6 +231,9 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.AUTOFILL_RESPECT_AUTOFILL_OFF to ::settingAutofillRespectAutofillOffProvider,
     Setting.AUTOFILL_SAVE_REQUEST to ::settingAutofillSaveRequestProvider,
     Setting.AUTOFILL_SAVE_URI to ::settingAutofillSaveUriProvider,
+    Setting.AUTOFILL_PASSKEYS to ::settingAutofillPasskeysEnabledProvider,
+    Setting.AUTOFILL_BLOCK_URI to ::settingAutofillBlockUriProvider,
+    Setting.AUTOFILL_PRIVILEGED_APPS to ::settingAutofillPrivilegedAppProvider,
     Setting.AUTOFILL_COPY_TOTP to ::settingAutofillCopyTotpProvider,
     Setting.NAV_ANIMATION to ::settingNavAnimationProvider,
     Setting.NAV_LABEL to ::settingNavLabelProvider,
@@ -221,6 +241,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.LOCALE to ::settingSelectLocaleProvider,
     Setting.COLOR_SCHEME to ::settingColorSchemeProvider,
     Setting.COLOR_SCHEME_AMOLED_DARK to ::settingThemeUseAmoledDarkProvider,
+    Setting.COLOR_SCHEME_EXPRESSIVE to ::settingThemeExpressiveProvider,
     Setting.COLOR_ACCENT to ::settingColorAccentProvider,
     Setting.MASTER_PASSWORD to ::settingMasterPasswordProvider,
     Setting.PERMISSION_DETAILS to ::settingPermissionDetailsProvider,
@@ -402,6 +423,7 @@ fun SettingPaneContent2(
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -430,12 +452,21 @@ fun SettingPaneContent2(
                     }
                 }
 
-                items(
+                itemsIndexed(
                     items = list,
-                    key = { model -> model.compositeKey },
-                ) { model ->
+                    key = { _, model -> model.compositeKey },
+                ) { index, model ->
+                    val shapeState = getShapeState(
+                        list,
+                        index,
+                        predicate = { item, _ ->
+                            item.groupKey == model.groupKey &&
+                                    item.itemKey != "divider"
+                        },
+                    )
                     CompositionLocalProvider(
                         LocalSettingItemArgs provides model.args,
+                        LocalSettingItemShape provides shapeState,
                     ) {
                         model.content?.invoke()
                     }

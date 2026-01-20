@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.unit.Dp
 import arrow.core.partially1
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.platform.crashlyticsIsEnabledFlow
 import com.artemchep.keyguard.platform.crashlyticsSetEnabled
 import com.artemchep.keyguard.res.Res
@@ -54,7 +56,8 @@ private fun SettingCrashlytics(
     checked: Boolean?,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = {
             val imageVector = Icons.Outlined.BugReport
             IconBox(imageVector)

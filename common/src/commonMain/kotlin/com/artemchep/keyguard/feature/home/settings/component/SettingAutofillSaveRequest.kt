@@ -12,9 +12,12 @@ import com.artemchep.keyguard.common.usecase.GetAutofillSaveRequest
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.PutAutofillSaveRequest
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
@@ -67,7 +70,22 @@ private fun SettingAutofillSaveRequest(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemLayoutExpressive(
+        shapeState = LocalSettingItemShape.current,
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_autofill_save_request_title),
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_autofill_save_request_text),
+                    )
+                },
+            )
+        },
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
@@ -78,16 +96,6 @@ private fun SettingAutofillSaveRequest(
                     onCheckedChange = onCheckedChange,
                 )
             }
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_autofill_save_request_title),
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(Res.string.pref_item_autofill_save_request_text),
-            )
         },
         onClick = onCheckedChange?.partially1(!checked),
     )

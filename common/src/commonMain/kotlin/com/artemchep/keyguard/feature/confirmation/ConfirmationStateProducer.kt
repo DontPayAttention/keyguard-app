@@ -80,7 +80,9 @@ fun confirmationState(
                         is ConfirmationRoute.Args.Item.BooleanItem -> ConfirmationState.Item.BooleanItem(
                             key = item.key,
                             title = item.title,
+                            text = item.text,
                             value = value as Boolean,
+                            enabled = item.enabled,
                             onChange = sink::value::set,
                         )
 
@@ -106,6 +108,7 @@ fun confirmationState(
                                 ConfirmationRoute.Args.Item.StringItem.Type.Password -> ConfirmationState.Item.StringItem.Generator.Password
                                 ConfirmationRoute.Args.Item.StringItem.Type.Token,
                                 ConfirmationRoute.Args.Item.StringItem.Type.Text,
+                                ConfirmationRoute.Args.Item.StringItem.Type.URI,
                                 ConfirmationRoute.Args.Item.StringItem.Type.Regex,
                                 ConfirmationRoute.Args.Item.StringItem.Type.Command,
                                 -> null
@@ -127,6 +130,7 @@ fun confirmationState(
                                 password = password,
                                 generator = generator,
                                 value = fixed,
+                                enabled = item.enabled,
                                 state = model,
                             )
                         }
@@ -136,6 +140,7 @@ fun confirmationState(
                             ConfirmationState.Item.EnumItem(
                                 key = item.key,
                                 value = fixed,
+                                enabled = item.enabled,
                                 items = item.items
                                     .map { el ->
                                         ConfirmationState.Item.EnumItem.Item(
@@ -174,6 +179,7 @@ fun confirmationState(
                                 key = item.key,
                                 title = item.title,
                                 value = fixed,
+                                enabled = item.enabled,
                                 error = error,
                                 onSelect = {
                                     val intent = FilePickerIntent.OpenDocument(
@@ -214,17 +220,18 @@ fun confirmationState(
                 sideEffects = sideEffects,
                 items = Loadable.Ok(items),
                 onDeny = {
-                    transmitter(ConfirmationResult.Deny)
                     navigatePopSelf()
+                    transmitter(ConfirmationResult.Deny)
                 },
                 onConfirm = if (valid) {
                     // lambda
                     {
+                        navigatePopSelf()
+
                         val data = items
                             .associate { it.key to it.value }
                         val result = ConfirmationResult.Confirm(data)
                         transmitter(result)
-                        navigatePopSelf()
                     }
                 } else {
                     null

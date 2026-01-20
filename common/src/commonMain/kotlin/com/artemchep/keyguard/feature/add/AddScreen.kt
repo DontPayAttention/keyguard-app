@@ -38,6 +38,8 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Terminal
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
@@ -74,12 +76,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.UsernameVariationIcon
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemTextContent2
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewTotpBadge2
@@ -103,19 +110,18 @@ import com.artemchep.keyguard.ui.EmailFlatTextField
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FakeFlatTextField
-import com.artemchep.keyguard.ui.FlatDropdown
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemAction
-import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.FlatTextFieldBadge
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.LeMOdelBottomSheet
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.PasswordPwnedBadge
 import com.artemchep.keyguard.ui.PasswordStrengthBadge
+import com.artemchep.keyguard.ui.TagFlatTextField
 import com.artemchep.keyguard.ui.UrlFlatTextField
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.focus.focusRequester2
@@ -140,6 +146,7 @@ import com.artemchep.keyguard.ui.util.DividerColor
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toPersistentList
 
 private val paddingValues = PaddingValues(
     horizontal = 8.dp,
@@ -180,16 +187,94 @@ fun LazyListScope.AddScreenItems(
     }
 }
 
+fun getAnyFieldShapeState(
+    list: List<AddStateItem>,
+    index: Int,
+): Int {
+    val item = list[index]
+    val predicate = when (item) {
+        is AddStateItem.Title<*> -> ::getAnyFieldShapeStateTitlePredicate
+        is AddStateItem.Username<*>,
+        is AddStateItem.Password<*>,
+            -> ::getAnyFieldShapeStateUsernamePasswordPredicate
+        is AddStateItem.Totp<*> -> ::getAnyFieldShapeStateTotpPredicate
+        is AddStateItem.Text<*> -> ::getAnyFieldShapeStateTextPredicate
+        is AddStateItem.Passkey<*> -> ::getAnyFieldShapeStatePasskeyPredicate
+        is AddStateItem.Attachment<*> -> ::getAnyFieldShapeStateAttachmentPredicate
+        is AddStateItem.Url<*> -> ::getAnyFieldShapeStateUrlPredicate
+        is AddStateItem.Field<*> -> ::getAnyFieldShapeStateFieldPredicate
+        is AddStateItem.Tag<*> -> ::getAnyFieldShapeStateTagPredicate
+        else -> ::getAnyFieldShapeStateOtherPredicate
+    }
+    return getShapeState(
+        list = list,
+        index = index,
+        predicate = predicate,
+    )
+}
+
+private fun getAnyFieldShapeStateTitlePredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Title<*>
+
+private fun getAnyFieldShapeStateUsernamePasswordPredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Username<*> || item is AddStateItem.Password<*>
+
+private fun getAnyFieldShapeStateTotpPredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Totp<*>
+
+private fun getAnyFieldShapeStateTextPredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Text<*>
+
+private fun getAnyFieldShapeStatePasskeyPredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Passkey<*>
+
+private fun getAnyFieldShapeStateAttachmentPredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Attachment<*>
+
+private fun getAnyFieldShapeStateUrlPredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Url<*>
+
+private fun getAnyFieldShapeStateFieldPredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Field<*>
+
+private fun getAnyFieldShapeStateTagPredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Tag<*>
+
+private fun getAnyFieldShapeStateOtherPredicate(
+    item: AddStateItem,
+    index: Int,
+) = false
+
 context(AddScreenScope)
 @Composable
 fun AnyField(
     modifier: Modifier = Modifier,
     item: AddStateItem,
+    shapeState: Int,
 ) = when (item) {
     is AddStateItem.Title<*> -> {
         TitleTextField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -197,6 +282,7 @@ fun AnyField(
         UsernameTextField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -204,6 +290,7 @@ fun AnyField(
         PasswordTextField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -211,6 +298,7 @@ fun AnyField(
         TotpTextField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -218,6 +306,7 @@ fun AnyField(
         UrlTextField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -225,6 +314,7 @@ fun AnyField(
         AttachmentTextField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -232,6 +322,7 @@ fun AnyField(
         PasskeyField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -239,6 +330,7 @@ fun AnyField(
         NoteTextField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -246,6 +338,7 @@ fun AnyField(
         SshKeyField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -253,6 +346,7 @@ fun AnyField(
         TextTextField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -260,6 +354,7 @@ fun AnyField(
         DateMonthYearField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -267,6 +362,7 @@ fun AnyField(
         DateTimeField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -274,6 +370,7 @@ fun AnyField(
         SwitchField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -295,6 +392,15 @@ fun AnyField(
         FieldField(
             modifier = modifier,
             item = item,
+            shapeState = shapeState,
+        )
+    }
+
+    is AddStateItem.Tag<*> -> {
+        FieldTag(
+            modifier = modifier,
+            item = item,
+            shapeState = shapeState,
         )
     }
 
@@ -318,6 +424,7 @@ context(AddScreenScope)
 private fun TitleTextField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Title<*>,
+    shapeState: Int,
 ) {
     val field by item.state.flow.collectAsState()
 
@@ -333,10 +440,11 @@ private fun TitleTextField(
     val focusRequester = initialFocusRequesterEffect()
     FlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         fieldModifier = Modifier
             .focusRequester2(focusRequester),
         label = stringResource(Res.string.generic_name),
+        shapeState = shapeState,
         singleLine = true,
         value = field,
         keyboardOptions = KeyboardOptions(
@@ -353,13 +461,15 @@ context(AddScreenScope)
 private fun UsernameTextField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Username<*>,
+    shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
     val field = state.value
     EmailFlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         label = stringResource(Res.string.username),
+        shapeState = shapeState,
         value = field,
         leading = {
             Crossfade(
@@ -374,10 +484,42 @@ private fun UsernameTextField(
             AutofillButton(
                 key = "username",
                 username = true,
+                provideUris = {
+                    this@AddScreenScope
+                        .obtainUriContext()
+                },
                 onValueChange = field.onChange,
             )
         },
     )
+}
+
+private fun AddScreenScope.obtainUriContext(): ImmutableList<String> {
+    val screenItems = this@AddScreenScope.itemsState.value
+    return screenItems
+        .mapNotNull { item ->
+            if (item is AddStateItem.Url<*>) {
+                val state = item.state.flow.value
+
+                val discarded = when (state.matchType) {
+                    null,
+                    DSecret.Uri.MatchType.Domain,
+                    DSecret.Uri.MatchType.Host,
+                    DSecret.Uri.MatchType.StartsWith,
+                    DSecret.Uri.MatchType.Exact,
+                    DSecret.Uri.MatchType.Never -> false
+                    DSecret.Uri.MatchType.RegularExpression -> true
+                }
+                if (discarded) {
+                    return@mapNotNull null
+                }
+                val rawUrl = state.text.state.value
+                return@mapNotNull rawUrl
+            }
+
+            null
+        }
+        .toPersistentList()
 }
 
 context(AddScreenScope)
@@ -386,13 +528,15 @@ context(AddScreenScope)
 private fun PasswordTextField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Password<*>,
+    shapeState: Int,
 ) = Column(modifier = modifier) {
     val field by item.state.flow.collectAsState()
     PasswordFlatTextField(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         value = field,
         label = item.label,
+        shapeState = shapeState,
         leading = {
             IconBox(
                 main = Icons.Outlined.Password,
@@ -402,6 +546,10 @@ private fun PasswordTextField(
             AutofillButton(
                 key = "password",
                 password = true,
+                provideUris = {
+                    this@AddScreenScope
+                        .obtainUriContext()
+                },
                 onValueChange = field.onChange,
             )
         },
@@ -431,7 +579,7 @@ private fun PasswordTextField(
     )
     Text(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding)
+            .padding(horizontal = Dimens.textHorizontalPadding)
             .padding(
                 top = Dimens.topPaddingCaption,
                 bottom = Dimens.topPaddingCaption,
@@ -448,13 +596,15 @@ context(AddScreenScope)
 private fun TotpTextField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Totp<*>,
+    shapeState: Int,
 ) = Column(modifier = modifier) {
     val state by item.state.flow.collectAsState()
     val field = state.value
     FlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         label = stringResource(Res.string.one_time_password_authenticator_key),
+        shapeState = shapeState,
         value = field,
         textStyle = LocalTextStyle.current.copy(
             fontFamily = monoFontFamily,
@@ -481,7 +631,7 @@ private fun TotpTextField(
             VaultViewTotpBadge2(
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .padding(start = 16.dp),
+                    .padding(start = Dimens.fieldHorizontalPadding),
                 copyText = state.copyText,
                 totpToken = totpToken,
             )
@@ -494,6 +644,7 @@ context(AddScreenScope)
 private fun NoteTextField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Note<*>,
+    shapeState: Int,
 ) = Column(
     modifier = modifier,
 ) {
@@ -511,6 +662,7 @@ private fun NoteTextField(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
         label = stringResource(Res.string.note),
+        shapeState = shapeState,
         value = field,
         content = if (markdown) {
             // composable
@@ -551,7 +703,7 @@ private fun NoteTextField(
         )
         Row(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding)
+                .padding(horizontal = Dimens.textHorizontalPadding)
                 .padding(top = Dimens.topPaddingCaption),
         ) {
             val navigationController = LocalNavigationController.current
@@ -624,21 +776,14 @@ context(AddScreenScope)
 private fun SshKeyField(
     modifier: Modifier = Modifier,
     item: AddStateItem.SshKey<*>,
+    shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
         modifier = modifier,
         backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
         leading = icon<RowScope>(Icons.Outlined.Terminal, Icons.Outlined.Key),
-        paddingValues = PaddingValues(
-            horizontal = 16.dp,
-        ),
-        contentPadding = PaddingValues(
-            start = 16.dp,
-            end = 8.dp,
-            top = 8.dp,
-            bottom = 8.dp,
-        ),
+        shapeState = shapeState,
         content = {
             val fingerprint = state.keyPair?.fingerprint
             if (!fingerprint.isNullOrEmpty()) {
@@ -655,7 +800,7 @@ private fun SshKeyField(
                         Text(
                             modifier = Modifier
                                 .alpha(DisabledEmphasisAlpha),
-                            text = stringResource(Res.string.empty_value),
+                            text = stringResource(Res.string.key_ssh_value_placeholder),
                         )
                     },
                 )
@@ -665,6 +810,10 @@ private fun SshKeyField(
             AutofillButton(
                 key = "sshKey",
                 sshKey = true,
+                provideUris = {
+                    this@AddScreenScope
+                        .obtainUriContext()
+                },
                 onResultChange = {
                     if (it is GetPasswordResult.AsyncKey) {
                         state.onChange(it.keyPair)
@@ -681,13 +830,15 @@ context(AddScreenScope)
 private fun UrlTextField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Url<*>,
+    shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
     val field = state.text
     UrlFlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         label = stringResource(Res.string.uri),
+        shapeState = shapeState,
         value = field,
         leading = {
             IconBox(
@@ -728,12 +879,14 @@ context(AddScreenScope)
 private fun AttachmentTextField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Attachment<*>,
+    shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
     FlatTextField(
         modifier = modifier
             .padding(horizontal = Dimens.horizontalPadding),
         label = "File",
+        shapeState = shapeState,
         placeholder = "File name",
         value = state.name,
         keyboardOptions = KeyboardOptions(
@@ -807,16 +960,13 @@ context(AddScreenScope)
 private fun PasskeyField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Passkey<*>,
+    shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
         modifier = modifier,
         leading = icon<RowScope>(Icons.Outlined.Key),
-        paddingValues = paddingValues,
-        contentPadding = PaddingValues(
-            horizontal = 16.dp,
-            vertical = 8.dp,
-        ),
+        shapeState = shapeState,
         content = {
             val passkey = state.passkey
             if (passkey != null) {
@@ -867,13 +1017,15 @@ context(AddScreenScope)
 private fun TextTextField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Text<*>,
+    shapeState: Int,
 ) = Column(modifier = modifier) {
     val state by item.state.flow.collectAsState()
     val field = state.value
     FlatTextField(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         leading = item.leading,
+        shapeState = shapeState,
         label = state.label,
         value = field,
         singleLine = state.singleLine,
@@ -883,7 +1035,7 @@ private fun TextTextField(
     if (item.note != null) {
         Text(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding)
+                .padding(horizontal = Dimens.textHorizontalPadding)
                 .padding(
                     top = Dimens.topPaddingCaption,
                     bottom = Dimens.topPaddingCaption,
@@ -896,11 +1048,65 @@ private fun TextTextField(
     }
 }
 
+
+context(AddScreenScope)
+@Composable
+private fun FieldTag(
+    modifier: Modifier = Modifier,
+    item: AddStateItem.Tag<*>,
+    shapeState: Int,
+) = Column(modifier = modifier) {
+    val state by item.state.flow.collectAsState()
+    val actions = remember(
+        state.options,
+        item.options,
+    ) {
+        buildContextItems(
+            state.options,
+            item.options,
+        ) {
+            // Do nothing.
+        }
+    }
+    when (val s = state) {
+        is AddStateItem.Tag.State.Text -> {
+            FieldTextTag(
+                state = s,
+                actions = actions,
+                shapeState = shapeState,
+            )
+        }
+    }
+}
+
+context(AddScreenScope)
+@Composable
+private fun FieldTextTag(
+    modifier: Modifier = Modifier,
+    state: AddStateItem.Tag.State.Text,
+    actions: ImmutableList<ContextItem>,
+    shapeState: Int,
+) {
+    TagFlatTextField(
+        modifier = modifier
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
+        shapeState = shapeState,
+        value = state.text,
+        trailing = {
+            OptionsButton(
+                actions = actions,
+            )
+        },
+    )
+}
+
+
 context(AddScreenScope)
 @Composable
 private fun FieldField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Field<*>,
+    shapeState: Int,
 ) = Column(modifier = modifier) {
     val state by item.state.flow.collectAsState()
     val actions = remember(
@@ -919,6 +1125,7 @@ private fun FieldField(
             FieldTextField(
                 state = s,
                 actions = actions,
+                shapeState = shapeState,
             )
         }
 
@@ -926,6 +1133,7 @@ private fun FieldField(
             FieldSwitchField(
                 state = s,
                 actions = actions,
+                shapeState = shapeState,
             )
         }
 
@@ -933,6 +1141,7 @@ private fun FieldField(
             FieldLinkedIdField(
                 state = s,
                 actions = actions,
+                shapeState = shapeState,
             )
         }
     }
@@ -944,6 +1153,7 @@ private fun FieldTextField(
     modifier: Modifier = Modifier,
     state: AddStateItem.Field.State.Text,
     actions: ImmutableList<ContextItem>,
+    shapeState: Int,
 ) {
     val visibilityState = remember(state.hidden) {
         VisibilityState(
@@ -952,8 +1162,9 @@ private fun FieldTextField(
     }
     BiFlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         label = state.label,
+        shapeState = shapeState,
         value = state.text,
         valueVisualTransformation = if (visibilityState.isVisible || !state.hidden) {
             VisualTransformation.None
@@ -968,6 +1179,16 @@ private fun FieldTextField(
                     visibilityState = visibilityState,
                 )
             }
+            AutofillButton(
+                key = "field",
+                username = true,
+                password = true,
+                provideUris = {
+                    this@AddScreenScope
+                        .obtainUriContext()
+                },
+                onValueChange = state.text.onChange,
+            )
             OptionsButton(
                 actions = actions,
             )
@@ -981,10 +1202,12 @@ private fun FieldSwitchField(
     modifier: Modifier = Modifier,
     state: AddStateItem.Field.State.Switch,
     actions: ImmutableList<ContextItem>,
+    shapeState: Int,
 ) {
     FlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
+        shapeState = shapeState,
         value = state.label,
         trailing = {
             Checkbox(
@@ -1004,18 +1227,16 @@ private fun FieldLinkedIdField(
     modifier: Modifier = Modifier,
     state: AddStateItem.Field.State.LinkedId,
     actions: ImmutableList<ContextItem>,
+    shapeState: Int,
 ) {
     val label = state.label
 
     val labelInteractionSource = remember { MutableInteractionSource() }
     val valueInteractionSource = remember { MutableInteractionSource() }
 
-    val isError = remember(
-        label.error,
-    ) {
-        derivedStateOf {
-            label.error != null
-        }
+    val isError = kotlin.run {
+        val error = label.error != null
+        rememberUpdatedState(error)
     }
 
     val hasFocusState = remember {
@@ -1046,7 +1267,7 @@ private fun FieldLinkedIdField(
 
     BiFlatContainer(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding)
+            .padding(horizontal = Dimens.fieldHorizontalPadding)
             .onFocusChanged { state ->
                 hasFocusState.value = state.hasFocus
             },
@@ -1058,6 +1279,7 @@ private fun FieldLinkedIdField(
             ) {
                 dropdownShownState.value = true
             },
+        shapeState = shapeState,
         isError = isError,
         isFocused = hasFocusState,
         isEmpty = isEmpty,
@@ -1096,19 +1318,14 @@ private fun FieldLinkedIdField(
                 )
             }
 
-            DropdownMenu(
-                modifier = Modifier
-                    .widthIn(min = DropdownMinWidth),
+            KeyguardDropdownMenu(
                 expanded = dropdownShownState.value,
                 onDismissRequest = onDismissRequest,
             ) {
-                val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                with(scope) {
-                    state.actions.forEachIndexed { index, action ->
-                        DropdownMenuItemFlat(
-                            action = action,
-                        )
-                    }
+                state.actions.forEachIndexed { index, action ->
+                    DropdownMenuItemFlat(
+                        action = action,
+                    )
                 }
             }
         },
@@ -1125,6 +1342,7 @@ context(AddScreenScope)
 private fun SwitchField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Switch<*>,
+    shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
     val onClick: () -> Unit = remember(item.state.flow) {
@@ -1134,9 +1352,9 @@ private fun SwitchField(
             field.onChange?.invoke(!field.checked)
         }
     }
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
-        paddingValues = paddingValues,
+        shapeState = shapeState,
         leading = {
             Checkbox(
                 checked = state.checked,
@@ -1168,13 +1386,11 @@ context(AddScreenScope)
 private fun DateMonthYearField(
     modifier: Modifier = Modifier,
     item: AddStateItem.DateMonthYear<*>,
+    shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
-    val isEmpty by derivedStateOf {
-        val isEmpty = state.month.state.value.isEmpty() &&
-                state.year.state.value.isEmpty()
-        isEmpty
-    }
+    val isEmpty = state.month.state.value.isEmpty() &&
+            state.year.state.value.isEmpty()
     val onClear = remember {
         // lambda
         {
@@ -1184,7 +1400,7 @@ private fun DateMonthYearField(
     }
     FakeFlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         label = item.label,
         value = {
             Row(
@@ -1216,15 +1432,15 @@ context(AddScreenScope)
 private fun DateTimeField(
     modifier: Modifier = Modifier,
     item: AddStateItem.DateTime<*>,
+    shapeState: Int,
 ) = Column(modifier = modifier) {
     val state by item.state.flow.collectAsState()
     Row(
         modifier = Modifier,
     ) {
-        FlatItemLayout(
+        FlatItemLayoutExpressive(
             modifier = Modifier
                 .weight(1.5f),
-            paddingValues = paddingValues,
             content = {
                 FlatItemTextContent2(
                     title = {
@@ -1246,10 +1462,9 @@ private fun DateTimeField(
             },
             onClick = state.onSelectDate,
         )
-        FlatItemLayout(
+        FlatItemLayoutExpressive(
             modifier = Modifier
                 .weight(1f),
-            paddingValues = paddingValues,
             content = {
                 FlatItemTextContent2(
                     title = {
@@ -1286,9 +1501,8 @@ private fun EnumItem(
     item: AddStateItem.Enum<*>,
 ) {
     val state by item.state.flow.collectAsState()
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
-        paddingValues = paddingValues,
         leading = item.leading,
         content = {
             FlatItemTextContent2(
@@ -1313,6 +1527,7 @@ private fun SectionItem(
     Section(
         modifier = modifier,
         text = item.text,
+        expressive = true,
     )
 }
 
@@ -1326,7 +1541,7 @@ private fun SuggestionItem(
     val state by item.state.flow.collectAsState()
     FlowRow(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.contentPadding),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -1417,45 +1632,48 @@ private fun AddItem(
             dropdownShownState.value = false
         }
     }
-    val contentColor = MaterialTheme.colorScheme.primary
-    FlatItem(
-        paddingValues = paddingValues,
-        leading = {
-            Icon(Icons.Outlined.Add, null, tint = contentColor)
-        },
-        title = {
-            Text(
-                text = item.text,
-                color = contentColor,
-            )
-
-            DropdownMenu(
-                modifier = Modifier
-                    .widthIn(min = DropdownMinWidth),
-                expanded = dropdownShownState.value,
-                onDismissRequest = onDismissRequest,
-            ) {
-                val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                with(scope) {
-                    item.actions.forEachIndexed { index, action ->
-                        DropdownMenuItemFlat(
-                            action = action,
-                        )
-                    }
-                }
-            }
-        },
+    Button(
+        modifier = modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = Dimens.buttonHorizontalPadding),
         onClick = {
             if (item.actions.size == 1) run {
                 val action = item.actions
                     .firstNotNullOfOrNull { it as? FlatItemAction }
                 action?.onClick?.invoke()
-                return@FlatItem
+                return@Button
             }
 
             dropdownShownState.value = true
         },
-    )
+        colors = ButtonDefaults.filledTonalButtonColors(),
+        elevation = ButtonDefaults.filledTonalButtonElevation(),
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(ButtonDefaults.IconSize),
+            imageVector = Icons.Outlined.Add,
+            contentDescription = null,
+        )
+        Spacer(
+            modifier = Modifier
+                .width(ButtonDefaults.IconSpacing),
+        )
+        Text(
+            text = item.text,
+        )
+
+        KeyguardDropdownMenu(
+            expanded = dropdownShownState.value,
+            onDismissRequest = onDismissRequest,
+        ) {
+            item.actions.forEachIndexed { index, action ->
+                DropdownMenuItemFlat(
+                    action = action,
+                )
+            }
+        }
+    }
 }
 
 //

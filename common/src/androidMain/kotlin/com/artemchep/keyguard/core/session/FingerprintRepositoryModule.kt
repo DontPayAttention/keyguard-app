@@ -10,13 +10,20 @@ import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
 import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
+import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
+import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
+import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
+import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManagerImpl
+import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.dirs.DirsService
+import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keychain.impl.KeychainRepositoryNoOp
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
@@ -44,6 +51,8 @@ import com.artemchep.keyguard.copy.ConnectivityServiceAndroid
 import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.LinkInfoExtractorAndroid
 import com.artemchep.keyguard.copy.DirsServiceAndroid
+import com.artemchep.keyguard.copy.FileServiceAndroid
+import com.artemchep.keyguard.copy.FileWatcherServiceAndroid
 import com.artemchep.keyguard.copy.LinkInfoExtractorLaunch
 import com.artemchep.keyguard.copy.LogRepositoryAndroid
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
@@ -57,21 +66,42 @@ import com.artemchep.keyguard.copy.SharedPreferencesTypes
 import com.artemchep.keyguard.copy.SubscriptionServiceAndroid
 import com.artemchep.keyguard.copy.TextServiceAndroid
 import com.artemchep.keyguard.core.session.usecase.BiometricStatusUseCaseImpl
+import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileAndroid
 import com.artemchep.keyguard.core.session.usecase.GetLocaleAndroid
 import com.artemchep.keyguard.core.session.usecase.PutLocaleAndroid
+import com.artemchep.keyguard.data.Database
+import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.platform.LeContext
 import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
 import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 import db_key_value.datastore.DataStoreKeyValueStore
 import db_key_value.shared_prefs.SharedPrefsKeyValueStore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.kodein.di.DI
+import org.kodein.di.DirectDI
 import org.kodein.di.bind
 import org.kodein.di.bindProvider
 import org.kodein.di.bindSingleton
 import org.kodein.di.factory
 import org.kodein.di.instance
 import org.kodein.di.multiton
+import java.io.File
+
+class CacheDirProviderAndroid(
+    private val context: Context,
+) : CacheDirProvider {
+    constructor(directDI: DirectDI) : this(
+        context = directDI.instance(),
+    )
+
+    override suspend fun get(): File = withContext(Dispatchers.IO) {
+        getBlocking()
+    }
+
+    override fun getBlocking(): File = context.cacheDir
+}
 
 fun diFingerprintRepositoryModule() = DI.Module(
     name = "com.artemchep.keyguard.core.session.repository::FingerprintRepository",
@@ -104,6 +134,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
 
 
+    bindSingleton<CacheDirProvider> {
+        CacheDirProviderAndroid(
+            directDI = this,
+        )
+    }
     bindSingleton<GetLocale> {
         GetLocaleAndroid(
             directDI = this,
@@ -111,11 +146,6 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<PutLocale> {
         PutLocaleAndroid(
-            directDI = this,
-        )
-    }
-    bindSingleton<GetSuggestions<Any?>> {
-        GetSuggestionsImpl(
             directDI = this,
         )
     }
@@ -145,6 +175,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindSingleton<DirsService> {
         DirsServiceAndroid(this)
     }
+    bindSingleton<FileWatcherService> {
+        FileWatcherServiceAndroid(this)
+    }
     bindSingleton<PowerService> {
         PowerServiceAndroid(this)
     }
@@ -166,6 +199,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<TextService> {
         TextServiceAndroid(
+            directDI = this,
+        )
+    }
+    bindSingleton<FileService> {
+        FileServiceAndroid(
             directDI = this,
         )
     }
@@ -260,6 +298,25 @@ fun diFingerprintRepositoryModule() = DI.Module(
             applicationContext = instance<Application>(),
             name = "download",
             deviceEncryptionKeyUseCase = instance(),
+        )
+    }
+    bindSingleton<ExposedDatabaseManager> {
+        val sqlManager = DatabaseSqlManagerInFileAndroid<DatabaseExposed>(
+            context = instance<Application>(),
+            fileName = "database_exposed",
+            onCreate = { database ->
+                ioUnit()
+            },
+        )
+        ExposedDatabaseManagerImpl(
+            logRepository = instance(),
+            cryptoGenerator = instance(),
+            settingsRepository = instance(),
+            generateMasterKeyUseCase = instance(),
+            generateMasterHashUseCase = instance(),
+            generateMasterSaltUseCase = instance(),
+            json = instance(),
+            sqlManager = sqlManager,
         )
     }
     bindSingleton<LogRepositoryAndroid> {

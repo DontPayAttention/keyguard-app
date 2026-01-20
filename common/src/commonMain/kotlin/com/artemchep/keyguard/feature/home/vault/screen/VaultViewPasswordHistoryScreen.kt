@@ -26,6 +26,7 @@ import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
@@ -55,6 +56,7 @@ fun VaultViewPasswordHistoryScreen(
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -105,11 +107,9 @@ fun VaultViewPasswordHistoryScreen(
 }
 
 private fun LazyListScope.populateItemsSkeleton() {
-    for (i in 0 until SKELETON_ITEMS_COUNT) {
-        item("skeleton.$i") {
-            SkeletonItem()
-        }
-    }
+    skeletonItems(
+        count = SKELETON_ITEMS_COUNT,
+    )
 }
 
 private fun LazyListScope.populateItemsContent(

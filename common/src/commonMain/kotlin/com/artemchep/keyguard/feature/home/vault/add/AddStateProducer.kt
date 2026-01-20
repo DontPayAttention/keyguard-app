@@ -3,8 +3,6 @@ package com.artemchep.keyguard.feature.home.vault.add
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Checkbox
-import androidx.compose.material.RadioButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.Apps
@@ -14,6 +12,8 @@ import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,6 +40,7 @@ import com.artemchep.keyguard.common.model.MatchDetection
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.UsernameVariation2
+import com.artemchep.keyguard.common.model.buildDocs
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.model.create.address1
 import com.artemchep.keyguard.common.model.create.address2
@@ -682,16 +683,51 @@ fun produceAddScreenState(
                                 linkedIdType,
                             )
 
+                            DSecret.Type.SshKey,
                             DSecret.Type.SecureNote -> listOf(
                                 plainTextType,
                                 concealedTextType,
                                 booleanType,
                             )
 
-                            DSecret.Type.SshKey,
                             DSecret.Type.None, -> emptyList()
                         }
                     },
+            )
+        },
+    )
+
+    val tagsFactories = kotlin.run {
+        val plainTextFactory = AddStateItemTagTextFactory()
+        listOf(
+            plainTextFactory,
+        )
+    }
+    val tagsFlow = foo3(
+        logRepository = logRepository,
+        scope = "tag",
+        initial = args.initialValue?.tags.orEmpty(),
+        initialType = { tag -> "tag.text" },
+        factories = tagsFactories,
+        afterList = {
+            val header = AddStateItem.Section(
+                id = "tag.section",
+                text = translate(Res.string.tags),
+            )
+            add(0, header)
+        },
+        extra = {
+            typeBasedAddItem(
+                translator = this@produceScreenState,
+                scope = "tag",
+                typesFlow = flowOf(
+                    listOf(
+                        Foo2Type(
+                            type = "tag.text",
+                            name = translate(Res.string.tag),
+                        ),
+                    ),
+                ),
             )
         },
     )
@@ -776,6 +812,7 @@ fun produceAddScreenState(
     val itfff = combine(
         typeItemsFlow,
         fieldsFlow,
+        tagsFlow,
         attachmentsFlow,
         miscFlow,
     ) { arr ->
@@ -1026,35 +1063,8 @@ class AddStateItemUriFactory(
                                 key = "name",
                                 value = selectedMatchType.name,
                                 items = items,
-                                docs = mapOf(
-                                    MatchDetection.Default.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_default_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#default-match-detection",
-                                    ),
-                                    MatchDetection.Domain.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_domain_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#base-domain",
-                                    ),
-                                    MatchDetection.Host.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_host_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#host",
-                                    ),
-                                    MatchDetection.StartsWith.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_startswith_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#starts-with",
-                                    ),
-                                    MatchDetection.Exact.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_exact_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#regular-expression",
-                                    ),
-                                    MatchDetection.RegularExpression.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_regex_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#regular-expression",
-                                    ),
-                                    MatchDetection.Never.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_never_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#exact",
-                                    ),
+                                docs = MatchDetection.buildDocs(
+                                    translatorScope = this,
                                 ),
                             ),
                             title = translate(Res.string.uri_match_detection_title),
@@ -1270,6 +1280,78 @@ class AddStateItemPasskeyFactory(
                     copy(fido2Credentials = newFido2Credentials)
                 },
             ),
+        )
+    }
+}
+
+abstract class AddStateItemTagFactory : Foo2Factory<AddStateItem.Tag<*>, String> {
+    fun foo(
+        key: String,
+        flow: StateFlow<AddStateItem.Tag.State>,
+    ) = AddStateItem.Tag<CreateRequest>(
+        id = key,
+        state = LocalStateItem(
+            flow = flow,
+            populator = { state ->
+                val tag = when (state) {
+                    is AddStateItem.Tag.State.Text -> {
+                        state.text.text
+                    }
+                }
+                val newTags = tags.add(tag)
+                copy(tags = newTags)
+            },
+        ),
+    )
+}
+
+class AddStateItemTagTextFactory(
+) : AddStateItemTagFactory() {
+    override val type: String = "tag.text"
+
+    override fun RememberStateFlowScope.release(key: String) {
+        clearPersistedFlow("$key.text")
+    }
+
+    override fun RememberStateFlowScope.add(
+        key: String,
+        initial: String?,
+    ): AddStateItem.Tag<CreateRequest> {
+        val textSink = mutablePersistedFlow("$key.text") {
+            initial.orEmpty()
+        }
+        val textMutableState = mutableComposeState(textSink)
+        val textHintFlow = ioEffect {
+            translate(Res.string.tag_value)
+        }.asFlow()
+        val textFlow = combine(
+            textSink,
+            textHintFlow,
+        ) { textValue, textHint ->
+            TextFieldModel2(
+                text = textValue,
+                hint = textHint,
+                state = textMutableState,
+                onChange = textMutableState::value::set,
+            )
+        }
+
+        val stateFlow = textFlow
+            .map { textField ->
+                AddStateItem.Tag.State.Text(
+                    text = textField,
+                )
+            }
+            .persistingStateIn(
+                scope = screenScope,
+                started = SharingStarted.WhileSubscribed(1000L),
+                initialValue = AddStateItem.Tag.State.Text(
+                    text = TextFieldModel2.empty,
+                ),
+            )
+        return foo(
+            key = key,
+            flow = stateFlow,
         )
     }
 }

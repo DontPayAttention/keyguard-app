@@ -25,6 +25,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
@@ -86,6 +87,7 @@ fun AttachmentsScreen(
     ScaffoldLazyColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             if (tabletUi) {
@@ -121,11 +123,7 @@ fun AttachmentsScreen(
     ) {
         when (state) {
             is Loadable.Loading -> {
-                for (i in 1..3) {
-                    item("skeleton.$i") {
-                        SkeletonItem()
-                    }
-                }
+                skeletonItems()
             }
 
             is Loadable.Ok -> {
@@ -177,6 +175,7 @@ private fun Item(
         ItemAttachment(
             modifier = modifier,
             item = item.item,
+            shapeState = item.shapeState,
         )
 }
 

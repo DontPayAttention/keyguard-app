@@ -11,7 +11,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -23,15 +22,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.common.model.GroupableShapeItem
+import com.artemchep.keyguard.common.model.ShapeState
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.LargeSection
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Avatar
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -58,16 +60,19 @@ private data class SocialNetwork(
 private data class SocialNetworkItem(
     val title: String,
     val username: String,
+    val shapeState: Int = ShapeState.ALL,
     val leading: @Composable RowScope.() -> Unit,
     val onClick: () -> Unit,
-)
+) : GroupableShapeItem<SocialNetworkItem> {
+    override fun withShape(shape: Int) = copy(shapeState = shape)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutTeamScreen() {
     val navController by rememberUpdatedState(LocalNavigationController.current)
     val socialNetworks = remember {
-        listOf(
+        val items = listOf(
             SocialNetwork(
                 title = "GitHub",
                 username = "AChep",
@@ -124,13 +129,17 @@ fun AboutTeamScreen() {
                     navController.queue(intent)
                 },
             )
-        }.toPersistentList()
+        }
+        items
+            .mapListShape()
+            .toPersistentList()
     }
 
     val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -156,15 +165,16 @@ fun AboutTeamScreen() {
         )
         Text(
             modifier = Modifier
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = Dimens.textHorizontalPadding),
             text = stringResource(Res.string.team_artem_whoami_text),
         )
         Section(
             text = stringResource(Res.string.team_follow_me_section),
         )
         socialNetworks.forEach { item ->
-            FlatItem(
+            FlatItemSimpleExpressive(
                 leading = item.leading,
+                shapeState = item.shapeState,
                 trailing = {
                     ChevronIcon()
                 },
@@ -180,8 +190,8 @@ fun AboutTeamScreen() {
         )
         Text(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
-            text = "Thanks to Vira & my friends for supporting me and patiently testing the app.",
+                .padding(horizontal = Dimens.textHorizontalPadding),
+            text = "Thanks you my friends for supporting me and patiently testing the app.",
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current
                 .combineAlpha(MediumEmphasisAlpha),

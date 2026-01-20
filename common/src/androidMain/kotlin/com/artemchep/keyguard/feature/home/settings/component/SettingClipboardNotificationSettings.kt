@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
-import android.content.Intent
-import android.provider.Settings
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.EditNotifications
@@ -10,15 +8,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
+import com.artemchep.keyguard.android.clipboard.KeyguardClipboardService
+import com.artemchep.keyguard.android.util.launchNotificationChannelSettingsOrThrow
 import com.artemchep.keyguard.common.R
+import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.usecase.ShowMessage
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
+import org.kodein.di.compose.rememberInstance
 
 actual fun settingClipboardNotificationSettingsProvider(
     directDI: DirectDI,
@@ -36,8 +41,12 @@ fun settingClipboardNotificationSettingsProvider(
 @Composable
 fun SettingClipboardNotificationSettings(
 ) {
+    val showMessage by rememberInstance<ShowMessage>()
+    val clipboardService by rememberInstance<ClipboardService>()
+
     val updatedContext by rememberUpdatedState(LocalContext.current)
-    FlatItem(
+    FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.EditNotifications),
         title = {
             Text(
@@ -48,13 +57,25 @@ fun SettingClipboardNotificationSettings(
             ChevronIcon()
         },
         onClick = {
-            val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).apply {
-                val packageName = updatedContext.packageName
-                val channelId = updatedContext.getString(R.string.notification_clipboard_channel_id)
-                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
+            // Make sure that the notification channel is created before
+            // attempting to launch the notification channel settings.
+            val channelId = updatedContext
+                .getString(R.string.notification_clipboard_channel_id)
+            KeyguardClipboardService.createNotificationChannel(
+                context = updatedContext,
+                clipboardService = clipboardService,
+            )
+
+            try {
+                updatedContext.launchNotificationChannelSettingsOrThrow(channelId)
+            } catch (e: Exception) {
+                val msg = ToastMessage(
+                    type = ToastMessage.Type.ERROR,
+                    title = "Failed to launch the Settings app",
+                    text = e.message,
+                )
+                showMessage.copy(msg)
             }
-            updatedContext.startActivity(intent)
         },
     )
 }

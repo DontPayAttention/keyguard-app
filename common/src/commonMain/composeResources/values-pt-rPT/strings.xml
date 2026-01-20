@@ -9,7 +9,9 @@
     <string name="show_keyguard">Mostrar Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
+    <string name="description">Descrição</string>
     <string name="account_name">Nome da conta</string>
+    <string name="database_name">Nome da base de dados</string>
     <string name="enabled">Ativado</string>
     <string name="disabled">Desativado</string>
     <string name="wordlist">Lista de palavras</string>
@@ -19,6 +21,7 @@
     <string name="current_password">Palavra-passe atual</string>
     <string name="new_password">Nova palavra-passe</string>
     <string name="no_password">Nenhuma palavra-passe</string>
+    <string name="advanced_options">Avançado</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Verificado</string>
     <string name="email_not_verified">Não verificado</string>
@@ -28,13 +31,16 @@
     <string name="conceal_value">Ocultar o valor</string>
     <string name="field_label">Designação</string>
     <string name="field_value">Valor</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <string name="tag_value">Valor</string>
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Contagem de acessos</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Número máximo de acessos</string>
+    <string name="ready_status_beta">Beta</string>
+    <string name="ready_status_alpha">Alfa</string>
     <string name="learn_more">Saber mais</string>
     <string name="phone_number">Número de telemóvel</string>
     <string name="passport_number">Número do passaporte</string>
@@ -95,6 +101,10 @@
     <string name="folder">Pasta</string>
     <string name="folders">Pastas</string>
     <string name="folders_empty_label">Sem pastas</string>
+    <string name="tag_none">Sem etiqueta</string>
+    <string name="tag">Etiqueta</string>
+    <string name="tags">Etiquetas</string>
+    <string name="tags_empty_label">Sem etiquetas</string>
     <string name="collection_none">Nenhuma coleção</string>
     <string name="collection">Coleção</string>
     <string name="collections">Coleções</string>
@@ -109,6 +119,7 @@
     <string name="category">Categoria</string>
     <string name="command">Comando</string>
     <string name="execute_command">Executar</string>
+    <string name="context_based_suggestions">Sugestões baseadas em contexto</string>
     <!-- Add (something) -->
     <string name="add">Adicionar</string>
     <string name="add_integration">Adicionar integração</string>
@@ -141,7 +152,11 @@
     <string name="select_file">Selecionar ficheiro</string>
     <string name="autofill">Preenchimento automático</string>
     <string name="autofill_and_save_uri">Preencher automaticamente e guardar dados da app ou informações do site</string>
+    <string name="backup_disclaimer_title">Os seus dados são da sua responsabilidade.</string>
+    <string name="backup_disclaimer_text">Para garantir que nunca se perde, adote a regra de cópia de segurança 3-2-1: guarde três cópias do seu cofre em dois tipos de suportes diferentes e guarde uma cópia num local separado e seguro.</string>
     <string name="passkey">Chave de acesso</string>
+    <string name="credential_login_create_header">Criar um início de sessão</string>
+    <string name="credential_password_create_header">Criar uma palavra-passe</string>
     <string name="passkey_create_header">Criar uma chave de acesso</string>
     <string name="passkey_unlock_header">Desbloquear Keyguard</string>
     <string name="passkey_auth_via_header">Confirmando solicitação de autenticação…</string>
@@ -176,6 +191,7 @@
     <string name="one_time_password">Código 2FA</string>
     <string name="one_time_password_authenticator_key">Chave de autenticação 2FA</string>
     <string name="passkey_use_short">Utilizar</string>
+    <string name="password_save">Guardar palavra-passe</string>
     <string name="passkey_save">Guardar a chave de acesso</string>
     <string name="passkey_available">Chave de acesso disponível</string>
     <string name="twofa_available">Autenticação com 2FA disponível</string>
@@ -191,6 +207,7 @@
     <string name="requested_verification_email">Solicitar e-mail de verificação</string>
     <string name="web_vault">Cofre Web</string>
     <string name="launch_web_vault">Iniciar Cofre Web</string>
+    <string name="local_vault">Cofre local</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Manter sessão iniciada</string>
     <!-- A Trash screen -->
@@ -211,9 +228,13 @@
     <string name="encryption_random_bits_data"><xliff:g id="length" example="64">%1$d</xliff:g>- bits de dados aleatórios</string>
     <string name="none">Nenhuma</string>
     <string name="text">Texto</string>
+    <string name="linked_app">Aplicações vinculadas</string>
     <string name="linked_apps">Aplicações vinculadas</string>
+    <string name="linked_uri">URIs vinculados</string>
     <string name="linked_uris">URIs vinculados</string>
+    <string name="custom_field">Campo personalizado</string>
     <string name="custom_fields">Campos personalizados</string>
+    <string name="custom_field_toggle_boolean_value">Valor de alternância</string>
     <string name="reveal_secure_note">Revelar nota segura</string>
     <string name="hide_secure_note">Esconder nota segura</string>
     <string name="master_password_hint">Lembrete da palavra-passe mestra</string>
@@ -223,6 +244,7 @@
     <string name="key_type">Tipo de chave</string>
     <string name="key_pair">Par de chaves</string>
     <string name="key_ssh">Chave SSH</string>
+    <string name="key_ssh_value_placeholder">Parece vazio aqui. Gere uma chave SSH para começar!</string>
     <string name="fingerprint_phrase">Frase de impressão digital</string>
     <string name="fingerprint_phrase_help_title">O que é uma impressão digital?</string>
     <string name="filter_auth_reprompt_items">Confirmação de autenticação</string>
@@ -231,6 +253,17 @@
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_premium_required">Requer Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Servidor não oficial Bitwarden</string>
+    <string name="server_version">Servidor versão <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Base de dados versão <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Limpar</string>
+    <string name="replace_key_file">Substituir um ficheiro de chave</string>
+    <string name="select_key_file">Selecione um ficheiro de chave</string>
+    <string name="select_database_file">Selecione um ficheiro de base de dados</string>
+    <string name="replace_database_file">Substitua um ficheiro de base de dados</string>
+    <string name="open_database">Abra uma base de dados</string>
+    <string name="create_database">Criar uma base de dados</string>
+    <string name="qr_wifi_description_text">Digitalize este código QR com outro dispositivo para se ligar a esta rede WiFi.</string>
+    <string name="qr_generate_button">Gerar código QR</string>
     <string name="pro_tip">Dica top: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Gerar e-mails descartáveis para uma maior privacidade.</string>
     <string name="account_last_synced_at">Última sincronização a <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -265,6 +298,8 @@
     <string name="ciphers_history_empty">Ainda não há histórico</string>
     <string name="ciphers_view_details">Ver detalhes</string>
     <string name="ciphers_save_to">Guardar em</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Adiciona uma chave de acesso</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Substitui o nome de utilizador e a palavra-passe de &amp;</string>
     <string name="ciphers_action_add_to_favorites_title">Adicionar aos favoritos</string>
     <string name="ciphers_action_remove_from_favorites_title">Remover dos favoritos</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Ativar aviso de autenticação</string>
@@ -424,6 +459,7 @@
     <string name="copied_value">Valor copiado</string>
     <string name="copied_url">URL copiado</string>
     <string name="copied_uri">URI copiado</string>
+    <string name="copied_tag">Copiei uma etiqueta</string>
     <string name="copied_package_name">Nome do pacote copiado</string>
     <string name="copied_key">Chave copiada</string>
     <string name="copied_fingerprint">Impressão digital copiada</string>
@@ -440,6 +476,8 @@
     <string name="copied_cvv_code">Código de segurança copiado</string>
     <string name="copied_otp_code">Senha única copiada</string>
     <string name="copied_otp_secret_code">Chave secreta copiada</string>
+    <string name="found_otp_code">Encontrada palavra-passe de utilização única</string>
+    <string name="found_value">Encontrado um valor</string>
     <string name="autofill_unlock_keyguard">Desbloquear Keyguard</string>
     <string name="autofill_open_keyguard">Abrir Keyguard</string>
     <string name="january">Janeiro</string>
@@ -495,16 +533,29 @@
     <string name="error_invalid_card_number">Número de cartão inválido</string>
     <string name="error_incorrect_password">Palavra-passe incorreta</string>
     <string name="error_otp_key_must_not_be_empty">A chave secreta da palavra-passe única não pode estar vazia</string>
+    <string name="error_failed_file_already_exists">Falha ao criar o ficheiro. Não é permitido substituir um ficheiro existente</string>
     <string name="error_failed_generate_kdf_hash_oom">Falha ao criar chave, sem memória. Por favor, verifique as configurações do seu servidor KDF.</string>
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar chave de acesso</string>
+    <string name="error_failed_create_password">Falha ao criar palavra-passe</string>
     <string name="error_failed_use_passkey">Falha ao autorizar um pedido</string>
+    <string name="error_failed_use_password">Não foi possível autorizar um pedido</string>
     <string name="error_failed_open_uri">Falha ao abrir URI</string>
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <string name="error_failed_open_app_for">Nenhuma aplicação instalado pode realizar esta requisição</string>
     <string name="error_failed_unknown">Algo correu mal</string>
     <string name="error_failed_encrypt_biometric_key">Falha ao encriptar a chave biométrica</string>
     <string name="error_failed_decrypt_biometric_key">Falha ao desencriptar a chave biométrica</string>
+    <string name="error_credential_calling_app_not_privileged">A aplicação que está a fazer a chamada não está na lista de aplicações privilegiadas e não pode solicitar autenticação em nome das outras aplicações.</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Conceda o privilégio e continue</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps. Describes the risks
+        a user takes by adding an app to the list -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Confiar numa aplicação permite que esta solicite credenciais para qualquer serviço. Uma aplicação maliciosa pode usar isso para tentar roubar as suas credenciais.</string>
     <string name="scanqr_title">Ler código QR</string>
     <string name="scanqr_load_from_image_note">Abrir e analisar um código QR a partir de uma imagem.</string>
     <string name="scanqr_camera_permission_required_text">É necessária permissão de acesso 
@@ -612,6 +663,22 @@
     <string name="urloverride_delete_one_confirmation_title">Apagar substituição de ligação URL?</string>
     <string name="urloverride_delete_many_confirmation_title">Apagar substituições de ligação URL?</string>
     <string name="urloverride_empty_label">Nenhuma substituição de ligação URL</string>
+    <string name="urlblock_header_title">Bloquear URI</string>
+    <string name="urlblock_list_header_title">URIs bloqueados</string>
+    <string name="urlblock_list_section_title">URIs bloqueados</string>
+    <string name="urlblock_delete_one_confirmation_title">Excluir o URI bloqueado?</string>
+    <string name="urlblock_delete_many_confirmation_title">Excluir o URI bloqueado?</string>
+    <string name="urlblock_empty_label">Não existem URIs bloqueados</string>
+    <string name="urlblock_expose_title">Expor os dados à estrutura de preenchimento automático antes de desbloquear o cofre</string>
+    <string name="urlblock_expose_text">Se ativada, a opção permite armazenar o item fora do cofre, ocultando completamente as sugestões de preenchimento automático, mesmo que o cofre esteja trancado</string>
+    <string name="privilegedapps_header_title">Aplicativos privilegiados</string>
+    <string name="privilegedapps_list_header_title">Aplicativos privilegiados</string>
+    <string name="privilegedapps_list_section_title">Aplicativos privilegiados</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Excluir o aplicativo privilegiado?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Excluir aplicativos privilegiados?</string>
+    <string name="privilegedapps_empty_label">Nenhum aplicativo privilegiado</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">Criar um cofre criptografado onde os dados locais serão armazenados.</string>
     <string name="setup_free_text">Ao continuar você confirmará que comprou o Keyguard ou que recebeu uma licença ativa.</string>
     <string name="setup_field_app_password_label">Palavra-passe da aplicação</string>
@@ -652,6 +719,10 @@
     <string name="addsend_hide_text_by_default_title">Ao aceder à entrada, esconder o texto por padrão</string>
     <string name="addsend_hide_email_title">Ocultar endereços de e-mail</string>
     <string name="addsend_max_access_count_note">Se definido, os utilizadores deixarão de poder aceder a este envio quando a contagem máxima de acessos for atingida.</string>
+    <string name="addaccount_promo_title">O seu cofre está vazio. Ligue uma conta para começar:</string>
+    <string name="addaccount_promo_features">Quer aproveitar ao máximo a sua experiência? Descrevemos abaixo todas as principais funcionalidades da aplicação. Verifique como pode ser útil para si.</string>
+    <string name="addaccount_description_short_bitwarden_text">Armazene o cofre encriptado numa nuvem.</string>
+    <string name="addaccount_description_short_keepass_text">Armazene o cofre encriptado localmente utilizando o formato de ficheiro KDBX.</string>
     <string name="addaccount_header_title">Adicionar conta Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Nós não somos afiliados, associados, autorizados, endossados ou de qualquer forma oficialmente ligados com Bitwarden, ou qualquer uma das suas filiais ou afiliadas.</string>
     <!--
@@ -685,6 +756,9 @@
     <string name="addaccount2fa_otp_note">Insira o código de verificação do seu aplicativo de autenticação.</string>
     <string name="addaccount2fa_email_note">Inserir o código de verificação que foi enviado por e-mail para <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Introduzir o código de autenticação YubiKey manualmente. Colocar o cursor no campo abaixo e ative o YubiKey.</string>
+    <string name="addkeepass_header_title">Adicionar conta KeePass</string>
+    <string name="addkeepass_header_body">Guarde todas as suas palavras-passe num único ficheiro KDBX altamente encriptado, armazenado diretamente no seu dispositivo. Tem controlo total sobre os seus dados. Armazene-os no seu computador, numa pen USB ou sincronize-os você mesmo utilizando um serviço de cloud como o Google Drive ou o Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">A implementação do KeePass está em versão beta e ainda não é totalmente compatível com os clientes KeePass padrão. Utilize por sua conta e risco. Certifique-se de que tem uma cópia de segurança verificada da sua base de dados antes de prosseguir.</string>
     <string name="provider_2fa_authenticator">Autenticador</string>
     <string name="provider_2fa_duo_organization">Duo (Organização)</string>
     <string name="provider_2fa_fido2_webauthn">Autenticação web FIDO2</string>
@@ -709,6 +783,7 @@
     <string name="home_watchtower_label">Guardião</string>
     <string name="home_settings_label">Definições</string>
     <string name="lock_reason_inactivity">Bloqueado devido a inatividade</string>
+    <string name="lock_reason_screen_off">Bloqueado devido ao ecrã desligado</string>
     <string name="lock_reason_manually">Bloqueado manualmente</string>
     <string name="send_type_text">Texto</string>
     <string name="send_type_file">Ficheiro</string>
@@ -785,6 +860,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Código de segurança</string>
     <string name="vault_view_saved_to_label">Guardado em <xliff:g id="email" example="username@example.com">%1$s</xliff:g> em <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">Guardado em <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Palavra-passe modificada pela última vez em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Chave de acesso criada em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Modificado pela última vez em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -871,6 +947,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">Isto vai remover todas as palavras-passe do histórico.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Apagar a palavra-passe do histórico?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Apagar as palavras-passe do histórico?</string>
+    <string name="block_autofill_header_title">Bloquear preenchimento automático</string>
     <string name="watchtower_header_title">Guardião</string>
     <string name="watchtower_section_password_strength_label">Segurança das palavras-passe</string>
     <string name="watchtower_section_security_label">Segurança</string>
@@ -949,6 +1026,8 @@
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
     <string name="settings_watchtower_header_title">Guardião</string>
     <string name="settings_open_source_licenses_header_title">Licenças de código aberto</string>
+    <string name="pref_section_premium_title">Premium</string>
+    <string name="pref_section_options_title">Opções</string>
     <string name="pref_item_accounts_title">Contas</string>
     <string name="pref_item_accounts_text">Adicionar &amp; ver contas</string>
     <string name="pref_item_autofill_title">Preenchimento automático</string>
@@ -996,6 +1075,7 @@
     <string name="pref_item_color_accent_title">Tonalidade</string>
     <string name="pref_item_color_scheme_title">Tema</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Usar tema preto puro</string>
+    <string name="pref_item_color_scheme_expressive_title">Utilize o tema expressivo</string>
     <string name="pref_item_open_links_in_external_browser_title">Abrir links num browser externo</string>
     <string name="pref_item_close_to_tray_title">Fechar para a bandeja do sistema</string>
     <string name="pref_item_check_pwned_passwords_title">Verificar por palavras-passe comprometidas</string>
@@ -1070,7 +1150,13 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Note que alguns sites são conhecidos por desativar o preenchimento automático para um campo de senha, bem como alguns navegadores são conhecidos por ignorar o preenchimento automático desabilitado</string>
     <string name="pref_item_autofill_save_request_title">Pedir para salvar dados</string>
     <string name="pref_item_autofill_save_request_text">Pede para atualizar o cofre quando o preenchimento de um formulário tiver sido concluído</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Suporte a chaves de acesso</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Anuncia suporte de chaves de acesso para o gestor de credenciais, permitindo que a aplicação atenda às solicitações</string>
     <string name="pref_item_autofill_auto_save_source_title">Salvar automaticamente dados do aplicativo ou informações do site</string>
+    <string name="pref_item_autofill_block_uri_title">Bloquear preenchimento automático</string>
+    <string name="pref_item_autofill_block_uri_text">Impede o preenchimento automático para estes URIs</string>
+    <string name="pref_item_autofill_privileged_apps_title">Aplicativos privilegiados</string>
+    <string name="pref_item_autofill_privileged_apps_text">Aplicativos com privilégios podem fazer solicitações de credenciais em nome de outros serviços</string>
     <string name="pref_item_clipboard_auto_clear_title">Limpar área de transferência automaticamente</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Imediatamente</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nunca</string>

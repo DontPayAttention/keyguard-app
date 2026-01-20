@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.permission.Permission
 import com.artemchep.keyguard.common.service.permission.PermissionService
@@ -22,9 +23,12 @@ import com.artemchep.keyguard.common.usecase.GetInMemoryLogsEnabled
 import com.artemchep.keyguard.common.usecase.PutInMemoryLogsEnabled
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
+import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsState
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -117,8 +121,11 @@ fun produceLogsState(
                     )
                 }
                 .toPersistentList()
+            val itemsReShaped = items
+                .mapListShape()
+                .toImmutableList()
             LogsState.Content(
-                items = items,
+                items = itemsReShaped,
             )
         }
         .stateIn(screenScope)

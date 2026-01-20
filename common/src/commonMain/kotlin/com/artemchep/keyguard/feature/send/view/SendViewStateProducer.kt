@@ -46,10 +46,11 @@ import com.artemchep.keyguard.common.usecase.SendToolbox
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
-import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
+import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -428,7 +429,7 @@ fun sendViewScreenState(
                         dateFormatter = dateFormatter,
                         account = accountOrNull,
                         send = secretOrNull,
-                    ).toList(),
+                    ).toList().transformShapes(),
                 )
             }
         }
@@ -574,15 +575,24 @@ private fun RememberStateFlowScope.oh(
     emit(s)
     val x = VaultViewItem.Label(
         id = "account",
-        text = annotate(
-            Res.string.vault_view_saved_to_label,
-            account.username to SpanStyle(
-                color = contentColor,
-            ),
-            account.host to SpanStyle(
-                color = contentColor,
-            ),
-        ),
+        text = if (account.username != null) {
+            annotate(
+                Res.string.vault_view_saved_to_label,
+                account.username to SpanStyle(
+                    color = contentColor,
+                ),
+                account.host to SpanStyle(
+                    color = contentColor,
+                ),
+            )
+        } else {
+            annotate(
+                Res.string.vault_view_saved_to_account_name_label,
+                account.host to SpanStyle(
+                    color = contentColor,
+                ),
+            )
+        },
     )
     emit(x)
     val createdDate = send.createdDate
@@ -768,7 +778,7 @@ private suspend fun RememberStateFlowScope.aaaa(
     return VaultViewItem.Uri(
         id = id,
         icon = {
-            FaviconImage(
+            FaviconIcon(
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape),

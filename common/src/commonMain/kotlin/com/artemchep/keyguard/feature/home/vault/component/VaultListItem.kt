@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,25 +12,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -48,27 +49,30 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.feature.EmptyView
-import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
@@ -76,21 +80,26 @@ import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
+import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
-import com.artemchep.keyguard.ui.DropdownMinWidth
-import com.artemchep.keyguard.ui.DropdownScopeImpl
-import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.DropdownScope
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.animatedConcealedText
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardFavourite
 import com.artemchep.keyguard.ui.rightClickable
+import com.artemchep.keyguard.ui.surface.LocalSurfaceElevation
+import com.artemchep.keyguard.ui.surface.surfaceNextGroupColorToElevationColor
 import com.artemchep.keyguard.ui.theme.Dimens
+import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.isDark
 import com.artemchep.keyguard.ui.theme.selectedContainer
@@ -110,6 +119,7 @@ fun VaultListItem(
 
     is VaultItem2.NoSuggestions -> {
         EmptyView(
+            largeArtwork = false,
             icon = {
                 Icon(Icons.Outlined.SearchOff, null)
             },
@@ -149,6 +159,7 @@ fun VaultListItemSection(
         modifier = modifier,
         text = text,
         caps = item.caps,
+        expressive = true,
     )
 }
 
@@ -157,29 +168,20 @@ fun VaultListItemButton(
     modifier: Modifier = Modifier,
     item: VaultItem2.Button,
 ) {
-    val contentColor = MaterialTheme.colorScheme.primary
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
+        shapeState = item.shapeState,
         leading = {
-            CompositionLocalProvider(
-                LocalContentColor provides contentColor,
-            ) {
-                val leading = item.leading
-                if (leading != null) {
-                    Row(
-                        modifier = Modifier
-                            .widthIn(min = 36.dp),
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        leading.invoke()
-                    }
+            val leading = item.leading
+            if (leading != null) {
+                Avatar {
+                    leading.invoke()
                 }
             }
         },
         title = {
             Text(
                 text = item.title,
-                color = contentColor,
             )
         },
         onClick = item.onClick,
@@ -191,13 +193,15 @@ fun Section(
     modifier: Modifier = Modifier,
     text: String? = null,
     caps: Boolean = true,
+    expressive: Boolean = false,
 ) {
     if (text != null) {
         Text(
             modifier = modifier
                 .padding(
-                    vertical = 16.dp,
-                    horizontal = Dimens.horizontalPadding,
+                    vertical = Dimens.contentPadding
+                        .coerceAtLeast(16.dp),
+                    horizontal = Dimens.textHorizontalPadding,
                 ),
             text = if (caps) text.uppercase() else text,
             style = MaterialTheme.typography.labelLarge,
@@ -206,11 +210,16 @@ fun Section(
             color = LocalContentColor.current
                 .combineAlpha(MediumEmphasisAlpha),
         )
+    } else if (expressive) {
+        Spacer(
+            modifier = Modifier
+                .height(24.dp),
+        )
     } else {
         HorizontalDivider(
             modifier = modifier
                 .padding(
-                    vertical = 4.dp,
+                    vertical = 8.dp,
                 ),
         )
     }
@@ -226,7 +235,7 @@ fun LargeSection(
         modifier = modifier
             .padding(
                 vertical = 16.dp,
-                horizontal = Dimens.horizontalPadding,
+                horizontal = Dimens.textHorizontalPadding,
             ),
     ) {
         val textStyle = MaterialTheme.typography.labelLarge
@@ -299,9 +308,10 @@ fun VaultListItemText(
     } else {
         backgroundColor
     }
-    FlatItemLayout2(
+    FlatItemLayoutExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
+        shapeState = item.shapeState,
         content = {
             FlatItemTextContent(
                 title = {
@@ -312,6 +322,7 @@ fun VaultListItemText(
                             text = title,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1,
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     } else {
                         Text(
@@ -345,6 +356,33 @@ fun VaultListItemText(
                         .padding(top = 8.dp),
                     copyText = item.copyText,
                     totpToken = item.token,
+                )
+            }
+
+            SmartBadgeList(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth(),
+                items = item.passwords,
+                key = { it.source.password.orEmpty() },
+            ) { pwItem ->
+                val password = remember(pwItem.conceal, pwItem.source.password) {
+                    val raw = pwItem.source.password
+                        ?: return@remember null
+                    if (pwItem.conceal) {
+                        obscurePassword(raw)
+                    } else raw
+                }
+                SmartBadge(
+                    modifier = Modifier,
+                    icon = {
+                        IconSmallBox(
+                            main = Icons.Outlined.Password,
+                        )
+                    },
+                    title = password,
+                    text = null,
+                    onClick = pwItem.onClick,
                 )
             }
 
@@ -398,19 +436,14 @@ fun VaultListItemText(
             val onDismissRequest = {
                 dropdownExpandedState.value = false
             }
-            DropdownMenu(
-                modifier = Modifier
-                    .widthIn(min = DropdownMinWidth),
+            KeyguardDropdownMenu(
                 expanded = dropdownExpandedState.value,
                 onDismissRequest = onDismissRequest,
             ) {
-                val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                with(scope) {
-                    dropdownActions.forEach { action ->
-                        DropdownMenuItemFlat(
-                            action = action,
-                        )
-                    }
+                dropdownActions.forEach { action ->
+                    DropdownMenuItemFlat(
+                        action = action,
+                    )
                 }
             }
         },
@@ -463,7 +496,7 @@ fun VaultListItemText(
 
                 is VaultItem2.Item.Feature.Totp,
                 is VaultItem2.Item.Feature.None,
-                -> {
+                    -> {
                 }
             }
 
@@ -639,19 +672,173 @@ private enum class Try {
     NONE,
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class,
-)
+val expressiveInnerCornerSize = CornerSize(4.dp)
+
 @Composable
-fun FlatItemLayout2(
+fun FlatDropdownSimpleExpressive(
     modifier: Modifier = Modifier,
-    backgroundColor: Color,
+    elevation: Dp = 0.dp,
+    backgroundColor: Color = Color.Unspecified,
     contentColor: Color = backgroundColor
         .takeIf { it.isSpecified }
         ?.let { contentColorFor(it) }
         ?: LocalContentColor.current,
+    shapeState: Int = ShapeState.ALL,
+    expressive: Boolean = LocalExpressive.current,
     content: @Composable ColumnScope.() -> Unit,
+    dropdown: List<ContextItem> = emptyList(),
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
+    leading: (@Composable RowScope.() -> Unit)? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
+    enabled: Boolean = dropdown.isNotEmpty() || onClick != null || onLongClick != null,
+) {
+    FlatDropdownLayoutExpressive(
+        modifier = modifier,
+        elevation = elevation,
+        backgroundColor = backgroundColor,
+        contentColor = contentColor,
+        shapeState = shapeState,
+        expressive = expressive,
+        content = content,
+        dropdown = if (dropdown.isNotEmpty()) {
+            // composable
+            {
+                dropdown.forEach { action ->
+                    DropdownMenuItemFlat(
+                        action = action,
+                    )
+                }
+            }
+        } else {
+            null
+        },
+        footer = footer,
+        leading = leading,
+        trailing = trailing,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        enabled = enabled,
+    )
+}
+
+@Composable
+fun FlatDropdownLayoutExpressive(
+    modifier: Modifier = Modifier,
+    elevation: Dp = 0.dp,
+    backgroundColor: Color = Color.Unspecified,
+    contentColor: Color = backgroundColor
+        .takeIf { it.isSpecified }
+        ?.let { contentColorFor(it) }
+        ?: LocalContentColor.current,
+    shapeState: Int = ShapeState.ALL,
+    expressive: Boolean = LocalExpressive.current,
+    content: @Composable ColumnScope.() -> Unit,
+    dropdown: (@Composable DropdownScope.() -> Unit)? = null,
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
+    leading: (@Composable RowScope.() -> Unit)? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
+    enabled: Boolean = dropdown != null || onClick != null || onLongClick != null,
+) {
+    var isContentDropdownExpanded by remember { mutableStateOf(false) }
+    FlatItemLayoutExpressive(
+        modifier = modifier,
+        elevation = elevation,
+        backgroundColor = backgroundColor,
+        contentColor = contentColor,
+        shapeState = shapeState,
+        expressive = expressive,
+        content = {
+            content()
+
+            // Inject the dropdown popup to the bottom of the
+            // content.
+            val onDismissRequest = {
+                isContentDropdownExpanded = false
+            }
+            KeyguardDropdownMenu(
+                expanded = isContentDropdownExpanded,
+                onDismissRequest = onDismissRequest,
+            ) {
+                dropdown?.invoke(this)
+            }
+        },
+        footer = footer,
+        leading = leading,
+        trailing = trailing,
+        onClick = when {
+            onClick != null -> onClick
+            dropdown != null -> {
+                // lambda
+                {
+                    isContentDropdownExpanded = !isContentDropdownExpanded
+                }
+            }
+
+            else -> null
+        },
+        onLongClick = onLongClick,
+        enabled = enabled,
+    )
+}
+
+@Composable
+fun FlatItemSimpleExpressive(
+    modifier: Modifier = Modifier,
+    elevation: Dp = 0.dp,
+    backgroundColor: Color = Color.Unspecified,
+    contentColor: Color = backgroundColor
+        .takeIf { it.isSpecified }
+        ?.let { contentColorFor(it) }
+        ?: LocalContentColor.current,
+    shapeState: Int = ShapeState.ALL,
+    expressive: Boolean = LocalExpressive.current,
+    title: @Composable () -> Unit,
+    text: (@Composable () -> Unit)? = null,
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
+    leading: (@Composable RowScope.() -> Unit)? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
+    enabled: Boolean = onClick != null,
+) = FlatItemLayoutExpressive(
+    modifier = modifier,
+    elevation = elevation,
+    backgroundColor = backgroundColor,
+    contentColor = contentColor,
+    shapeState = shapeState,
+    expressive = expressive,
+    content = {
+        FlatItemTextContent(
+            title = title,
+            text = text,
+        )
+    },
+    footer = footer,
+    leading = leading,
+    trailing = trailing,
+    onClick = onClick,
+    onLongClick = onLongClick,
+    enabled = enabled,
+)
+
+@Composable
+fun FlatItemLayoutExpressive(
+    modifier: Modifier = Modifier,
+    elevation: Dp = 0.dp,
+    backgroundColor: Color = Color.Unspecified,
+    contentColor: Color = backgroundColor
+        .takeIf { it.isSpecified }
+        ?.let { contentColorFor(it) }
+        ?: LocalContentColor.current,
+    shapeState: Int = ShapeState.ALL,
+    expressive: Boolean = LocalExpressive.current,
+    padding: PaddingValues? = null,
+    content: @Composable ColumnScope.() -> Unit,
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
     leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
@@ -660,75 +847,174 @@ fun FlatItemLayout2(
 ) {
     val haptic by rememberUpdatedState(LocalHapticFeedback.current)
     val background = run {
+        val color = rememberFlatSurfaceExpressiveColor(
+            elevation = elevation,
+            backgroundColor = backgroundColor,
+            expressive = expressive,
+        )
         Modifier
             .drawBehind {
-                drawRect(backgroundColor)
+                drawRect(color)
             }
     }
     val clickable = run {
         val onClickState = rememberUpdatedState(onClick)
-        val onLongClickState = rememberUpdatedState(onLongClick)
         Modifier
             .combinedClickable(
                 enabled = onClick != null,
-                onLongClick = {
-                    val lambda = onLongClickState.value
-                    if (lambda != null) {
-                        lambda.invoke()
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    }
-                },
+                onLongClick = onLongClick,
             ) {
                 onClickState.value?.invoke()
             }
             .rightClickable(onLongClick)
     }
-    Row(
+
+    val shape: Shape = surfaceShape(
+        shapeState = shapeState,
+        expressive = expressive,
+    )
+    val dimens = Dimens
+    val outerHorizontalPadding: Dp = dimens.contentPadding
+    val innerHorizontalPadding: Dp = dimens.contentPadding
+    val innerVerticalPadding: Dp
+    if (expressive) {
+        innerVerticalPadding = 10.dp
+    } else {
+        innerVerticalPadding = 8.dp
+    }
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(
-                horizontal = 8.dp,
-                vertical = 2.dp,
+            .then(
+                if (padding != null) {
+                    Modifier
+                        .padding(padding)
+                } else Modifier
+                    .padding(
+                        start = outerHorizontalPadding,
+                        end = outerHorizontalPadding,
+                        top = 1.dp,
+                        bottom = 2.dp, // in Android notifications the margin is 3 dp
+                    ),
             )
-            .clip(MaterialTheme.shapes.medium)
-            .then(background)
-            .then(clickable)
-            .minimumInteractiveComponentSize()
-            .padding(
-                horizontal = 8.dp,
-                vertical = 8.dp,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
+            .clip(shape)
+            .then(background),
     ) {
-        CompositionLocalProvider(
-            LocalContentColor provides contentColor
-                .let { color ->
-                    if (enabled) {
-                        color
-                    } else {
-                        color.combineAlpha(alpha = DisabledEmphasisAlpha)
-                    }
-                },
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(clickable)
+                .minimumInteractiveComponentSize()
+                .padding(
+                    horizontal = innerHorizontalPadding,
+                    vertical = innerVerticalPadding,
+                ),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (leading != null) {
-                CompositionLocalProvider(
-                    LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
-                ) {
-                    leading()
-                }
-                Spacer(Modifier.width(16.dp))
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f),
+            CompositionLocalProvider(
+                LocalContentColor provides contentColor
+                    .let { color ->
+                        if (enabled) {
+                            color
+                        } else {
+                            color.combineAlpha(alpha = DisabledEmphasisAlpha)
+                        }
+                    },
             ) {
-                content()
-            }
-            if (trailing != null) {
-                Spacer(Modifier.width(16.dp))
-                trailing()
+                if (leading != null) {
+                    CompositionLocalProvider(
+                        LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
+                    ) {
+                        leading()
+                    }
+                    Spacer(Modifier.width(16.dp))
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f),
+                ) {
+                    content()
+                }
+                if (trailing != null) {
+                    Spacer(Modifier.width(16.dp))
+                    trailing()
+                }
             }
         }
+        if (footer != null) {
+            footer()
+        }
+    }
+}
+
+@Composable
+fun rememberFlatSurfaceExpressiveColor(
+    elevation: Dp = 0.dp,
+    backgroundColor: Color = Color.Unspecified,
+    expressive: Boolean = LocalExpressive.current,
+): Color {
+    val color = if (backgroundColor.isSpecified || !expressive) {
+        val bg = backgroundColor.takeIf { it.isSpecified }
+            ?: Color.Transparent
+        val fg = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(elevation)
+        fg.compositeOver(bg)
+    } else {
+        if (elevation.value > 0f) {
+            surfaceNextGroupColorToElevationColor(0f)
+        } else {
+            val surfaceElevation = LocalSurfaceElevation.current
+            surfaceNextGroupColorToElevationColor(surfaceElevation.to)
+        }
+    }
+    return color
+}
+
+@Composable
+fun FlatSurfaceExpressive(
+    modifier: Modifier = Modifier,
+    elevation: Dp = 0.dp,
+    backgroundColor: Color = Color.Unspecified,
+    shapeState: Int = ShapeState.ALL,
+    expressive: Boolean = LocalExpressive.current,
+    padding: PaddingValues? = null,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    val background = run {
+        val color = rememberFlatSurfaceExpressiveColor(
+            elevation = elevation,
+            backgroundColor = backgroundColor,
+            expressive = expressive,
+        )
+        Modifier
+            .drawBehind {
+                drawRect(color)
+            }
+    }
+
+    val shape: Shape = surfaceShape(
+        shapeState = shapeState,
+        expressive = expressive,
+    )
+    val horizontalPadding: Dp = Dimens.contentPadding
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (padding != null) {
+                    Modifier
+                        .padding(padding)
+                } else Modifier
+                    .padding(
+                        start = horizontalPadding,
+                        end = horizontalPadding,
+                        top = 1.dp,
+                        bottom = 2.dp, // in Android notifications the margin is 3 dp
+                    ),
+            )
+            .clip(shape)
+            .then(background),
+    ) {
+        content()
     }
 }
 
@@ -740,6 +1026,41 @@ fun rememberSecretAccentColor(
     val color = LocalContentColor.current
     val accent = if (color.luminance() > 0.5f) accentDark else accentLight
     return accent.combineAlpha(alpha = color.alpha)
+}
+
+@Composable
+fun surfaceShape(shapeState: Int, expressive: Boolean): Shape {
+    val shape: Shape
+    if (expressive) {
+        val shapeSrc = MaterialTheme.shapes.large
+        shape = when (shapeState) {
+            ShapeState.START -> shapeSrc
+                .copy(
+                    bottomStart = expressiveInnerCornerSize,
+                    bottomEnd = expressiveInnerCornerSize,
+                )
+
+            ShapeState.CENTER -> shapeSrc
+                .copy(
+                    topStart = expressiveInnerCornerSize,
+                    topEnd = expressiveInnerCornerSize,
+                    bottomStart = expressiveInnerCornerSize,
+                    bottomEnd = expressiveInnerCornerSize,
+                )
+
+            ShapeState.END -> shapeSrc
+                .copy(
+                    topStart = expressiveInnerCornerSize,
+                    topEnd = expressiveInnerCornerSize,
+                )
+
+            ShapeState.ALL -> shapeSrc
+            else -> shapeSrc
+        }
+    } else {
+        shape = MaterialTheme.shapes.large
+    }
+    return shape
 }
 
 @Composable
@@ -794,13 +1115,14 @@ fun ColorScheme.surfaceColorAtElevationSemi(
 ): Color {
     if (elevation == 0.dp) return Color.Unspecified
     val alpha = ((4.5f * ln(elevation.value + 1)) + 2f) / 100f
-    return surfaceTint.copy(alpha = alpha)
+    return surfaceTint.combineAlpha(alpha = alpha)
 }
 
 @Composable
 fun BoxScope.VaultItemIcon2(
     icon: VaultItemIcon,
     modifier: Modifier = Modifier,
+    color: Color = LocalContentColor.current,
 ) {
     when (icon) {
         is VaultItemIcon.VectorIcon -> {
@@ -809,21 +1131,31 @@ fun BoxScope.VaultItemIcon2(
                     .align(Alignment.Center),
                 imageVector = icon.imageVector,
                 contentDescription = null,
-                tint = Color.Black
-                    .combineAlpha(MediumEmphasisAlpha),
+                tint = color,
             )
         }
 
         is VaultItemIcon.TextIcon -> {
-            Text(
+            val circleColor = Color.White
+                .combineAlpha(0.1f)
+            Box(
                 modifier = modifier
-                    .align(Alignment.Center),
-                text = icon.text,
-                color = Color.Black
-                    .combineAlpha(MediumEmphasisAlpha),
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-            )
+                    .fillMaxSize()
+                    .padding(3.dp)
+                    .clip(CircleShape)
+                    .background(circleColor),
+            ) {
+                Text(
+                    modifier = modifier
+                        .align(Alignment.Center),
+                    text = icon.text,
+                    textAlign = TextAlign.Center,
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
         }
 
         is VaultItemIcon.ImageIcon -> {
@@ -839,8 +1171,8 @@ fun BoxScope.VaultItemIcon2(
 
         is VaultItemIcon.WebsiteIcon,
         is VaultItemIcon.AppIcon,
-        -> {
-            FaviconImage(
+            -> {
+            FaviconIcon(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(3.dp)

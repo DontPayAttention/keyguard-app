@@ -5,9 +5,11 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.handleError
 import com.artemchep.keyguard.common.io.handleErrorTap
+import com.artemchep.keyguard.common.io.handleErrorWith
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
@@ -20,6 +22,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
+import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager.Companion.roundToMillis
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Clock
 import kotlin.Any
@@ -28,6 +31,7 @@ import kotlin.String
 import kotlin.Throwable
 import kotlin.Unit
 import kotlin.let
+import kotlin.time.Instant
 
 suspend fun merge(
     remote: BitwardenCipher,
@@ -112,7 +116,6 @@ interface RemotePutScope<Remote> {
     fun updateRemoteModel(remote: Remote)
 }
 
-context(SyncScope)
 suspend fun <
         Local : BitwardenService.Has<Local>,
         LocalDecoded : Any,
@@ -121,6 +124,7 @@ suspend fun <
         > syncX(
     sync: (String, IO<Any?>) -> IO<Any?> = { _, io -> io },
     name: String,
+    getDateMillis: (Instant) -> Long = ::roundToMillis,
     localItems: Collection<Local>,
     localLens: SyncManager.LensLocal<Local>,
     localReEncoder: (Local) -> RemoteDecoded,
@@ -150,6 +154,7 @@ suspend fun <
     val df = SyncManager(
         local = localLens,
         remote = remoteLens,
+        getDateMillis = getDateMillis,
     ).df(
         localItems = localItems,
         remoteItems = remoteItems,
@@ -301,7 +306,23 @@ suspend fun <
                     lastRemote = remote
                 }
             }
-            ioEffect { remotePut(scope, localDecoded) }
+            ioEffect {
+                val newRemote = remotePut(scope, localDecoded)
+                val msg = run {
+                    val params = listOf(
+                        "local_id" to localLens.getLocalId(local),
+                        "local_local_rev_date" to localLens.getLocalRevisionDate(local),
+                        // Last known remote revision date of the locally
+                        // available service.
+                        "local_remote_rev_date" to local.service.remote?.revisionDate,
+                    ).joinToString { (key, value) ->
+                        "$key=$value"
+                    }
+                    "[remote] Put successful... $params"
+                }
+                onLog(msg, LogLevel.DEBUG)
+                newRemote
+            }
                 .handleErrorTap { e ->
                     handleFailedToPut(
                         local = local,
@@ -354,8 +375,19 @@ suspend fun <
                             .bind()
                     }
 
-                val msg = "[local] Merging ${remoteLens.getId(remote)} $name entry " +
-                        "with ${localLens.getLocalId(local)}..."
+                val msg = run {
+                    val params = listOf(
+                        "remote_rev_date" to remoteLens.getRevisionDate(remote),
+                        "local_local_rev_date" to localLens.getLocalRevisionDate(local),
+                        // Last known remote revision date of the locally
+                        // available service.
+                        "local_remote_rev_date" to local.service.remote?.revisionDate,
+                    ).joinToString { (key, value) ->
+                        "$key=$value"
+                    }
+                    "[local] Merging ${remoteLens.getId(remote)} $name entry " +
+                            "with ${localLens.getLocalId(local)}... $params"
+                }
                 onLog(msg, LogLevel.DEBUG)
 
                 val remoteDecodedResult = getLocalPutRemoteDecodedModelIo(local, remote)

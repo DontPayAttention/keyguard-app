@@ -14,7 +14,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -25,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -46,6 +49,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.artemchep.keyguard.feature.PromoView
+import com.artemchep.keyguard.feature.keyguard.setup.keyguardSpan
+import com.artemchep.keyguard.feature.rememberPromoViewStatus
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
@@ -53,6 +59,7 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.PlainTextField
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.pluralStringResource
@@ -66,10 +73,16 @@ fun SearchTextField(
     focusRequester: FocusRequester2,
     focusFlow: Flow<Unit>?,
     count: Int? = null,
+    playPromo: Boolean = false,
     leading: @Composable () -> Unit,
     trailing: @Composable () -> Unit,
     onTextChange: ((String) -> Unit)?,
 ) {
+    val promoState = rememberPromoViewStatus(
+        playPromo = playPromo,
+        ready = onTextChange != null,
+    )
+
     val interactionSource = remember {
         MutableInteractionSource()
     }
@@ -97,7 +110,7 @@ fun SearchTextField(
                 // the Material 3 top bar.
                 .height(64.dp)
                 .padding(
-                    horizontal = 8.dp,
+                    horizontal = Dimens.contentPadding,
                     vertical = 8.dp,
                 )
                 .searchTextFieldBackground(
@@ -124,14 +137,13 @@ fun SearchTextField(
                 } else {
                     Spacer(
                         modifier = Modifier
-                            .size(24.dp),
+                            .size(16.dp),
                     )
                 }
                 Spacer(
                     modifier = Modifier
                         .size(16.dp),
                 )
-
             }
             val textStyle = TextStyle(
                 fontSize = 20.sp,
@@ -155,12 +167,27 @@ fun SearchTextField(
                 value = text,
                 textStyle = textStyle,
                 placeholder = {
-                    Text(
-                        text = placeholder,
-                        style = textStyle,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    PromoView(
+                        state = promoState,
+                        promo = {
+                            val promo = remember {
+                                keyguardSpan()
+                            }
+                            Text(
+                                text = promo,
+                                style = textStyle,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        },
+                    ) {
+                        Text(
+                            text = placeholder,
+                            style = textStyle,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 },
                 enabled = onTextChange != null,
                 onValueChange = {

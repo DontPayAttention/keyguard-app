@@ -20,6 +20,8 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.PutVaultPersist
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -77,7 +79,8 @@ private fun SettingVaultPersist(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     val secondaryIcon = if (checked) Icons.Outlined.Memory else Icons.Outlined.Storage
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.Key, secondaryIcon),
         trailing = {
             CompositionLocalProvider(
@@ -109,21 +112,22 @@ private fun SettingVaultPersist(
                 },
             )
         },
+        footer = {
+            ExpandedIfNotEmpty(
+                valueOrNull = Unit.takeIf { checked },
+            ) {
+                FlatSimpleNote(
+                    modifier = Modifier
+                        .padding(
+                            top = 8.dp,
+                            bottom = 8.dp,
+                            start = Dimens.horizontalPadding * 1 + 24.dp,
+                        ),
+                    type = SimpleNote.Type.WARNING,
+                    text = stringResource(Res.string.pref_item_persist_vault_key_note),
+                )
+            }
+        },
         onClick = onCheckedChange?.partially1(!checked),
     )
-
-    ExpandedIfNotEmpty(
-        valueOrNull = Unit.takeIf { checked },
-    ) {
-        FlatSimpleNote(
-            modifier = Modifier
-                .padding(
-                    top = 8.dp,
-                    bottom = 8.dp,
-                    start = Dimens.horizontalPadding * 1 + 24.dp,
-                ),
-            type = SimpleNote.Type.WARNING,
-            text = stringResource(Res.string.pref_item_persist_vault_key_note),
-        )
-    }
 }

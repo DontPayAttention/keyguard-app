@@ -12,17 +12,23 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeService
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeServiceInfo
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
-import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.feature.decorator.ItemDecorator
+import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
+import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
+import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
+import com.artemchep.keyguard.feature.search.search.mapShape
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
+import com.artemchep.keyguard.platform.recordException
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
@@ -78,7 +84,7 @@ fun produceJustDeleteMeServiceListState(
         navigate(intent)
     }
 
-    fun List<JustDeleteMeServiceInfo>.toItems(): List<JustDeleteMeServiceListState.Item> {
+    fun List<JustDeleteMeServiceInfo>.toItems(): List<JustDeleteMeServiceListState.Item.Content> {
         val nameCollisions = mutableMapOf<String, Int>()
         return this
             .sortedWith(modelComparator)
@@ -96,10 +102,10 @@ fun produceJustDeleteMeServiceListState(
                         url = url,
                     )
                 }
-                JustDeleteMeServiceListState.Item(
+                JustDeleteMeServiceListState.Item.Content(
                     key = key,
                     icon = {
-                        FaviconImage(
+                        FaviconIcon(
                             modifier = Modifier
                                 .size(24.dp)
                                 .clip(CircleShape),
@@ -134,6 +140,51 @@ fun produceJustDeleteMeServiceListState(
             // search decor applied to it.
             item.copy(name = result.highlightedText)
         }
+        .map { (items, rev) ->
+            val decorator: ItemDecorator<JustDeleteMeServiceListState.Item, JustDeleteMeServiceListState.Item.Content> =
+                when {
+                    items.size >= AlphabeticalSortMinItemsSize ->
+                        ItemDecoratorTitle(
+                            selector = { it.name.text },
+                            factory = { id, text ->
+                                JustDeleteMeServiceListState.Item.Section(
+                                    key = id,
+                                    name = text,
+                                )
+                            },
+                        )
+
+                    else ->
+                        ItemDecoratorNone
+                                as ItemDecorator<JustDeleteMeServiceListState.Item, JustDeleteMeServiceListState.Item.Content>
+                }
+
+            val sectionIds = mutableSetOf<String>()
+            val out = mutableListOf<JustDeleteMeServiceListState.Item>()
+            items.forEach { item ->
+                val section = decorator.getOrNull(item)
+                // Some weird combinations of items might lead to
+                // duplicate # being used.
+                if (section != null) {
+                    if (section.key !in sectionIds) {
+                        sectionIds += section.key
+                        out += section
+                    } else {
+                        val sections = sectionIds
+                            .joinToString()
+
+                        val msg =
+                            "Duplicate sections prevented @ JustDeleteMeList: $sections, [${section.key}]"
+                        val exception = RuntimeException(msg)
+                        recordException(exception)
+                    }
+                }
+
+                out += item
+            }
+            out to rev
+        }
+        .mapShape()
     val contentFlow = itemsFlow
         .crashlyticsAttempt { e ->
             val msg = "Failed to get the just-delete-me list!"

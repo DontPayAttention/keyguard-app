@@ -22,8 +22,12 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +48,7 @@ import com.artemchep.keyguard.feature.home.vault.component.AddAccountView
 import com.artemchep.keyguard.feature.home.vault.component.VaultListItem
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.LocalNavigationEntry
 import com.artemchep.keyguard.feature.navigation.LocalNavigationRouter
@@ -67,15 +72,21 @@ import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.SmallFab
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.icons.IconBox
+import com.artemchep.keyguard.ui.icons.Stub
+import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonFilter
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.SkeletonItemAvatar
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
 import org.jetbrains.compose.resources.stringResource
@@ -154,6 +165,7 @@ fun VaultListScreen(
     val focusRequester = remember { FocusRequester2() }
     TwoPaneScreen(
         header = { modifier ->
+            val subtitle = textResource(args.appBar?.subtitle)
             CustomSearchbarContent(
                 modifier = modifier,
                 searchFieldModifier = Modifier,
@@ -161,7 +173,8 @@ fun VaultListScreen(
                 searchFieldPlaceholder = stringResource(Res.string.vault_main_search_placeholder),
                 focusRequester = focusRequester,
                 title = args.appBar?.title,
-                subtitle = args.appBar?.subtitle,
+                subtitle = subtitle,
+                playPromo = true,
                 icon = {
                     NavigationIcon()
                 },
@@ -182,12 +195,13 @@ fun VaultListScreen(
             )
         },
     ) { modifier, tabletUi ->
+        val subtitle = textResource(args.appBar?.subtitle)
         VaultHomeScreenListPane(
             modifier = modifier,
             state = state,
             focusRequester = focusRequester,
             title = args.appBar?.title,
-            subtitle = args.appBar?.subtitle,
+            subtitle = subtitle,
             fab = args.canAddSecrets,
             tabletUi = tabletUi,
             preselect = args.preselect,
@@ -257,7 +271,7 @@ private fun VaultListSortButton(
     ExperimentalFoundationApi::class,
     ExperimentalLayoutApi::class,
     ExperimentalAnimationApi::class,
-    ExperimentalMaterialApi::class,
+    ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class,
 )
 @Composable
 fun VaultHomeScreenListPane(
@@ -346,6 +360,7 @@ fun VaultHomeScreenListPane(
         modifier = modifier
             .pullRefresh(pullRefreshState)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             if (tabletUi) {
@@ -363,6 +378,7 @@ fun VaultHomeScreenListPane(
                     focusRequester = focusRequester,
                     title = title,
                     subtitle = subtitle,
+                    playPromo = true,
                     icon = {
                         NavigationIcon()
                     },
@@ -443,18 +459,15 @@ fun VaultHomeScreenListPane(
                                 dp.value = false
                             }
                         }
-                        DropdownMenu(
-                            modifier = Modifier
-                                .widthIn(min = DropdownMinWidth),
+                        KeyguardDropdownMenu(
                             expanded = dp.value,
                             onDismissRequest = onDismissRequest,
                         ) {
-                            val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
                             DropdownMenuExpandableContainer(
-                                dropdownScope = scope,
+                                dropdownScope = this,
                                 list = state.primaryActions,
                             ) { action ->
-                                scope.DropdownMenuItemFlat(
+                                DropdownMenuItemFlat(
                                     action = action,
                                 )
                             }
@@ -488,18 +501,21 @@ fun VaultHomeScreenListPane(
                 pullRefreshState = pullRefreshState,
             )
         },
+        provideContentUserScrollEnabled = {
+            state.content !is VaultListState.Content.Skeleton
+        },
         listState = listState,
     ) {
         when (state.content) {
             is VaultListState.Content.Skeleton -> {
-                item {
+                if (!tabletUi) item {
                     Column(
                         modifier = Modifier,
                     ) {
                         FlowRow(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 8.dp),
+                                .padding(horizontal = Dimens.contentPadding),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
@@ -512,13 +528,10 @@ fun VaultHomeScreenListPane(
                 }
                 // Show a bunch of skeleton items, so it makes an impression of a
                 // fully loaded screen.
-                for (i in 0..3) {
-                    item(i) {
-                        SkeletonItem(
-                            avatar = true,
-                        )
-                    }
-                }
+                skeletonItems(
+                    avatar = SkeletonItemAvatar.LARGE,
+                    count = 20,
+                )
             }
 
             else -> {
@@ -553,7 +566,7 @@ fun VaultHomeScreenListPane(
                                 FlowRow(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 8.dp),
+                                        .padding(horizontal = Dimens.contentPadding),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {

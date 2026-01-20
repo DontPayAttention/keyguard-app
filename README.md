@@ -2,7 +2,7 @@
 
 [![Crowdin](https://badges.crowdin.net/keyguard/localized.svg)](https://crowdin.com/project/keyguard)
 
-Keyguard is an alternative client for the [Bitwarden® platform](https://bitwarden.com/), created to provide the best user experience possible.
+Keyguard is a multi-client for the [Bitwarden® platform](https://bitwarden.com/) and [KeePass](https://keepass.info/) (KDBX), created to provide the best user experience possible.
 
 _Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc._
 
@@ -18,13 +18,17 @@ _Can be used with any Bitwarden® installation. This product is not associated w
        height="60" />
 </a>
 
+<a href='https://flathub.org/apps/com.artemchep.keyguard'>
+    <img vspace="20" hspace="10" height="42" alt='Get it on Flathub' src='https://flathub.org/api/badge?locale=en'/>
+</a>
+
 #### Highlights
 - a beautiful rich and responsive **Material You** user interface;
 - a **powerful** and **fast search**;
 - a support for creating & using **passkeys** - a modern alternative to passwords.
 - a watchtower that finds items with **Pwned passwords**, **Vulnerable accounts**, **Reused passwords**, **Inactive two factor authentication**, **Inactive passkeys**, **Unsecure Websites** as well as **Duplicate**, **Incomplete** and **Expiring** items, and other;
 - **multi-account support** 🌠 with secure login and two-factor authentication support;
-- add items 🌠 and sends 🌠, modify 🌠, and view your vault **offline**;
+- add items 🌠 and sends _(Bitwarden, 🌠)_, modify 🌠, and view your vault **offline**;
 - **export individual** or organization items, **including the attachments**; 
 - beautiful **Light**/**Dark theme**;
 - a generator with **SSH keys**, **Email forwarders**, **Custom wordlists** support, and many other features; 
@@ -32,7 +36,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - a [smart conflict resolution](wiki/CONFLICTS.md);
 - and much more!
 
-🌠 _- on Android requires the Premium one-time or subscription license_. 
+🌠 _— requires a premium license: one-time or subscription._
 
 #### Platforms
 Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and largely dependent on the JVM libraries. Keyguard is focusing to be **Android** first, other platforms might have some features missing.
@@ -42,16 +46,23 @@ Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and large
 - [Windows](#windows);
 - [macOS](#macos).
 
+#### Accounts
+Keyguard is focusing to provide a full support of the Bitwarden® platform, while the KeePass support is implemented through a prism of Bitwarden's features. 
+Read more about implementation details:
+
+- [Bitwarden](wiki/BITWARDEN.md);
+- [KeePass](wiki/KEEPASS.md);
+
 #### Looks
 
 |        |        |        |
 | :----: | :----: | :----: |
-| ![1](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233006.png) | ![2](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233040.png) | ![3](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233118.png) | 
-| ![4](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233159.png) | ![5](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233236.png) | ![6](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233342.png) |
+| ![1](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174631.png) | ![2](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174459.png) | ![3](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174520.png) | 
+| ![4](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174547.png) | ![5](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174558.png) | ![6](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174612.png) |
 
 |        |
 | :----: |
-| ![](https://github.com/AChep/keyguard-app/blob/master/screenshots/tablet10/Screenshot_20240306-111704.png) |
+| ![](https://github.com/AChep/keyguard-app/blob/master/screenshots/tablet10/Screenshot_20250825_180106.png) |
 
 ## Localisation
 
@@ -70,13 +81,7 @@ You can find the `.apk` binary on the [releases page](https://github.com/AChep/k
 
 ### Linux
 You can find the `.flatpak` binary on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
-
-##### [AUR](https://aur.archlinux.org/) Keyguard [package](https://aur.archlinux.org/packages/keyguard)
-> [!NOTE]
-> The package is maintained by a volunteer
-```sh
-yay -S keyguard
-```
+- [Flathub](https://flathub.org/apps/com.artemchep.keyguard).
 
 ### macOS
 You can find the `.dmg` binaries for Apple and Intel processors on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).

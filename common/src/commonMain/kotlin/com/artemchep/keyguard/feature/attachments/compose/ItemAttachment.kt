@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
@@ -65,6 +66,7 @@ import com.artemchep.keyguard.ui.theme.infoContainer
 fun ItemAttachment(
     modifier: Modifier,
     item: AttachmentItem,
+    shapeState: Int,
 ) {
     val downloadStatusState = item.statusState.collectAsState()
     val selectableState = item.selectableState.collectAsState()
@@ -73,6 +75,7 @@ fun ItemAttachment(
         modifier = modifier,
         name = item.name,
         size = item.size,
+        shapeState = shapeState,
         dropdown = actionsState.value,
         previewUrlProvider = { downloadStatusState.value.previewUrl },
         downloadedProvider = {
@@ -236,6 +239,7 @@ private fun ItemAttachmentLayout(
     modifier: Modifier,
     name: String,
     size: String? = null,
+    shapeState: Int,
     dropdown: List<ContextItem>,
     previewUrlProvider: @Composable () -> String?,
     downloadedProvider: @Composable () -> Boolean,
@@ -250,9 +254,10 @@ private fun ItemAttachmentLayout(
         } else {
             Color.Unspecified
         }
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
+        shapeState = shapeState,
         content = {
             FlatItemTextContent(
                 title = {

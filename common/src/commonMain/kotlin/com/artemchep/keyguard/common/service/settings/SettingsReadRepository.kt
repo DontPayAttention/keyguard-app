@@ -42,6 +42,8 @@ interface SettingsReadRepository {
 
     fun getAutofillSaveUri(): Flow<Boolean>
 
+    fun getAdvertisePasskeysSupport(): Flow<Boolean>
+
     fun getAutofillCopyTotp(): Flow<Boolean>
 
     fun getVaultPersist(): Flow<Boolean>
@@ -100,6 +102,8 @@ interface SettingsReadRepository {
 
     fun getThemeUseAmoledDark(): Flow<Boolean>
 
+    fun getThemeM3Expressive(): Flow<Boolean>
+
     fun getKeepScreenOn(): Flow<Boolean>
 
     fun getGravatar(): Flow<Boolean>
@@ -115,4 +119,6 @@ interface SettingsReadRepository {
     fun getColors(): Flow<AppColors?>
 
     fun getLocale(): Flow<String?>
+
+    fun getExposedDatabaseKey(): Flow<ByteArray?>
 }

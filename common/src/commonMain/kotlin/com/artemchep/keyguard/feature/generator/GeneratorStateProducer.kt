@@ -1,14 +1,8 @@
 package com.artemchep.keyguard.feature.generator
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -20,22 +14,14 @@ import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Password
-import androidx.compose.material.icons.outlined.Pin
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import arrow.core.compose
@@ -48,9 +34,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.handleErrorTap
-import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioRaise
-import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.shared
@@ -63,7 +47,6 @@ import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyPairConfig
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.PasswordGeneratorConfig
 import com.artemchep.keyguard.common.model.PasswordGeneratorConfigBuilder2
 import com.artemchep.keyguard.common.model.build
 import com.artemchep.keyguard.common.model.getOrNull
@@ -75,6 +58,7 @@ import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.service.relays.api.EmailRelay
+import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetCanWrite
@@ -86,11 +70,14 @@ import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.util.flow.EventFlow
+import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.feature.auth.common.IntFieldModel
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_DOMAIN
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
+import com.artemchep.keyguard.feature.auth.common.util.ValidationUri
+import com.artemchep.keyguard.feature.auth.common.util.validateUri
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListRoute
 import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryRoute
@@ -111,15 +98,16 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.generatorTarget
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.provider.bitwarden.model.PasswordResult
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
+import com.artemchep.keyguard.ui.PLACEHOLDER_EMAIL
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardIcons
+import com.artemchep.keyguard.ui.icons.KeyguardWordlist
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.icons.custom.FormatLetterCaseLower
@@ -127,6 +115,8 @@ import com.artemchep.keyguard.ui.icons.custom.FormatLetterCaseUpper
 import com.artemchep.keyguard.ui.icons.custom.Numeric
 import com.artemchep.keyguard.ui.icons.custom.Symbol
 import com.artemchep.keyguard.ui.theme.isDark
+import io.ktor.http.URLBuilder
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
@@ -233,10 +223,13 @@ fun produceGeneratorState(
         privateKeyExport = instance(),
         numberFormatter = instance(),
         getCanWrite = instance(),
+        tldService = instance(),
         clipboardService = instance(),
         emailRelays = allInstances(),
     )
 }
+
+const val GENERATOR_KEY_ARG_URIS = "args:context"
 
 private const val PREFIX_PASSWORD = "password"
 private const val PREFIX_PASSPHRASE = "passphrase"
@@ -271,6 +264,7 @@ fun produceGeneratorState(
     privateKeyExport: KeyPrivateExport,
     numberFormatter: NumberFormatter,
     getCanWrite: GetCanWrite,
+    tldService: TldService,
     clipboardService: ClipboardService,
     emailRelays: List<EmailRelay>,
 ): Loadable<GeneratorState> = produceScreenState(
@@ -288,6 +282,17 @@ fun produceGeneratorState(
     val copyItemFactory = copy(
         clipboardService = clipboardService,
     )
+
+    val webUriContextWordsRaw = mutablePersistedFlow(GENERATOR_KEY_ARG_URIS) {
+        args.context.uris
+    }
+    val webUriContextWordsFlow = webUriContextWordsRaw
+        .map { uris ->
+            getWebUriContextWords(
+                tldService = tldService,
+                uris = uris.toList(),
+            )
+        }
 
     fun checkTypeMatchesArgs(type: GeneratorType2) =
         (type.password && args.password) ||
@@ -737,6 +742,18 @@ fun produceGeneratorState(
         )
     }
 
+    // Should never be used, as the value config
+    // makes little to no sense for a generator screen.
+    suspend fun createFilter(
+        config: PasswordGeneratorConfigBuilder2.Value,
+    ): GeneratorState.Filter {
+        return GeneratorState.Filter(
+            tip = null,
+            length = null,
+            items = persistentListOf(),
+        )
+    }
+
     val passphraseFilterTip = GeneratorState.Filter.Tip(
         text = translate(Res.string.generator_passphrase_note),
         onLearnMore = {
@@ -751,15 +768,6 @@ fun produceGeneratorState(
         config: PasswordGeneratorConfigBuilder2.Passphrase,
     ): GeneratorState.Filter {
         val items = persistentListOf<GeneratorState.Filter.Item>(
-            GeneratorState.Filter.Item.Text(
-                key = "$PREFIX_PASSPHRASE.delimiter",
-                title = translate(Res.string.generator_passphrase_delimiter_title),
-                model = TextFieldModel2(
-                    state = passphraseDelimiterState,
-                    text = config.delimiter,
-                    onChange = passphraseDelimiterState::value::set,
-                ),
-            ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSPHRASE.capitalize",
                 icon = KeyguardIcons.FormatLetterCaseUpper,
@@ -781,10 +789,23 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Enum(
                 key = "$PREFIX_PASSPHRASE.wordlist",
                 title = translate(Res.string.generator_passphrase_wordlist_title),
+                icon = Icons.Outlined.KeyguardWordlist,
                 model = wordlistFilterItem(
                     wordlistId = config.wordlistId,
                     wordlists = config.wordlists,
                     onSelect = passphraseWordlistIdSink::value::set,
+                ),
+            ),
+            GeneratorState.Filter.Item.Section(
+                key = "$PREFIX_PASSPHRASE.section1",
+            ),
+            GeneratorState.Filter.Item.Text(
+                key = "$PREFIX_PASSPHRASE.delimiter",
+                title = translate(Res.string.generator_passphrase_delimiter_title),
+                model = TextFieldModel2(
+                    state = passphraseDelimiterState,
+                    text = config.delimiter,
+                    onChange = passphraseDelimiterState::value::set,
                 ),
             ),
         )
@@ -832,24 +853,6 @@ fun produceGeneratorState(
         config: PasswordGeneratorConfigBuilder2.Username,
     ): GeneratorState.Filter {
         val items = persistentListOf<GeneratorState.Filter.Item>(
-            GeneratorState.Filter.Item.Text(
-                key = "$PREFIX_PASSPHRASE.custom_word",
-                title = translate(Res.string.generator_username_custom_word_title),
-                model = TextFieldModel2(
-                    state = usernameCustomWordState,
-                    text = config.customWord,
-                    onChange = usernameCustomWordState::value::set,
-                ),
-            ),
-            GeneratorState.Filter.Item.Text(
-                key = "$PREFIX_PASSPHRASE.delimiter",
-                title = translate(Res.string.generator_username_delimiter_title),
-                model = TextFieldModel2(
-                    state = usernameDelimiterState,
-                    text = config.delimiter,
-                    onChange = usernameDelimiterState::value::set,
-                ),
-            ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_USERNAME.capitalize",
                 icon = KeyguardIcons.FormatLetterCaseUpper,
@@ -871,10 +874,32 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Enum(
                 key = "$PREFIX_USERNAME.wordlist",
                 title = translate(Res.string.generator_username_wordlist_title),
+                icon = Icons.Outlined.KeyguardWordlist,
                 model = wordlistFilterItem(
                     wordlistId = config.wordlistId,
                     wordlists = config.wordlists,
                     onSelect = usernameWordlistIdSink::value::set,
+                ),
+            ),
+            GeneratorState.Filter.Item.Section(
+                key = "$PREFIX_USERNAME.section1",
+            ),
+            GeneratorState.Filter.Item.Text(
+                key = "$PREFIX_USERNAME.custom_word",
+                title = translate(Res.string.generator_username_custom_word_title),
+                model = TextFieldModel2(
+                    state = usernameCustomWordState,
+                    text = config.customWord,
+                    onChange = usernameCustomWordState::value::set,
+                ),
+            ),
+            GeneratorState.Filter.Item.Text(
+                key = "$PREFIX_USERNAME.delimiter",
+                title = translate(Res.string.generator_username_delimiter_title),
+                model = TextFieldModel2(
+                    state = usernameDelimiterState,
+                    text = config.delimiter,
+                    onChange = usernameDelimiterState::value::set,
                 ),
             ),
         )
@@ -1039,15 +1064,21 @@ fun produceGeneratorState(
                 ),
             ),
         )
+        val length = when (val payload = config.payload) {
+            is PasswordGeneratorConfigBuilder2.EmailPayload.Value -> null
+            is PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated -> {
+                GeneratorState.Filter.Length(
+                    value = payload.length,
+                    min = EMAIL_CATCH_ALL_LENGTH_MIN,
+                    max = EMAIL_CATCH_ALL_LENGTH_MAX,
+                    onChange = emailCatchAllLengthSink::value::set
+                        .compose { it.toLong() },
+                )
+            }
+        }
         return GeneratorState.Filter(
             tip = catchAllEmailFilterTip,
-            length = GeneratorState.Filter.Length(
-                value = config.length,
-                min = EMAIL_CATCH_ALL_LENGTH_MIN,
-                max = EMAIL_CATCH_ALL_LENGTH_MAX,
-                onChange = emailCatchAllLengthSink::value::set
-                    .compose { it.toLong() },
-            ),
+            length = length,
             items = items,
         )
     }
@@ -1071,7 +1102,7 @@ fun produceGeneratorState(
                 model = TextFieldModel2(
                     state = emailPlusAddressingEmailState,
                     text = config.email,
-                    hint = "username@example.com",
+                    hint = PLACEHOLDER_EMAIL,
                     error = when {
                         config.email.isEmpty() ->
                             translate(Res.string.error_must_not_be_empty)
@@ -1085,15 +1116,21 @@ fun produceGeneratorState(
                 ),
             ),
         )
+        val length = when (val payload = config.payload) {
+            is PasswordGeneratorConfigBuilder2.EmailPayload.Value -> null
+            is PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated -> {
+                GeneratorState.Filter.Length(
+                    value = payload.length,
+                    min = EMAIL_PLUS_ADDRESSING_LENGTH_MIN,
+                    max = EMAIL_PLUS_ADDRESSING_LENGTH_MAX,
+                    onChange = emailPlusAddressingLengthSink::value::set
+                        .compose { it.toLong() },
+                )
+            }
+        }
         return GeneratorState.Filter(
             tip = emailPlusAddressingFilterTip,
-            length = GeneratorState.Filter.Length(
-                value = config.length,
-                min = EMAIL_PLUS_ADDRESSING_LENGTH_MIN,
-                max = EMAIL_PLUS_ADDRESSING_LENGTH_MAX,
-                onChange = emailPlusAddressingLengthSink::value::set
-                    .compose { it.toLong() },
-            ),
+            length = length,
             items = items,
         )
     }
@@ -1117,7 +1154,7 @@ fun produceGeneratorState(
                 model = TextFieldModel2(
                     state = emailSubdomainAddressingEmailState,
                     text = config.email,
-                    hint = "username@example.com",
+                    hint = PLACEHOLDER_EMAIL,
                     error = when {
                         config.email.isEmpty() ->
                             translate(Res.string.error_must_not_be_empty)
@@ -1134,15 +1171,21 @@ fun produceGeneratorState(
                 ),
             ),
         )
+        val length = when (val payload = config.payload) {
+            is PasswordGeneratorConfigBuilder2.EmailPayload.Value -> null
+            is PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated -> {
+                GeneratorState.Filter.Length(
+                    value = payload.length,
+                    min = EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_MIN,
+                    max = EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_MAX,
+                    onChange = emailSubdomainAddressingLengthSink::value::set
+                        .compose { it.toLong() },
+                )
+            }
+        }
         return GeneratorState.Filter(
             tip = emailSubdomainAddressingFilterTip,
-            length = GeneratorState.Filter.Length(
-                value = config.length,
-                min = EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_MIN,
-                max = EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_MAX,
-                onChange = emailSubdomainAddressingLengthSink::value::set
-                    .compose { it.toLong() },
-            ),
+            length = length,
             items = items,
         )
     }
@@ -1223,6 +1266,7 @@ fun produceGeneratorState(
     suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2,
     ) = when (config) {
+        is PasswordGeneratorConfigBuilder2.Value -> createFilter(config)
         is PasswordGeneratorConfigBuilder2.Password -> createFilter(config)
         is PasswordGeneratorConfigBuilder2.Passphrase -> createFilter(config)
         is PasswordGeneratorConfigBuilder2.PinCode -> createFilter(config)
@@ -1285,7 +1329,7 @@ fun produceGeneratorState(
     val configBuilderFlow = typeFlow
         .flatMapLatest { type ->
             when (type) {
-                is GeneratorType2.Password -> combine(
+                is GeneratorType2.Password -> combine<Any?, PasswordGeneratorConfigBuilder2.Password>(
                     passwordLengthSink,
                     passwordIncludeUppercaseCharactersSink,
                     passwordIncludeLowercaseCharactersSink,
@@ -1392,7 +1436,9 @@ fun produceGeneratorState(
                     emailCatchAllDomainSink,
                 ) { length, domain ->
                     PasswordGeneratorConfigBuilder2.EmailCatchAll(
-                        length = length.toInt(),
+                        payload = PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated(
+                            length = length.toInt(),
+                        ),
                         domain = domain,
                     )
                 }
@@ -1402,7 +1448,9 @@ fun produceGeneratorState(
                     emailPlusAddressingEmailSink,
                 ) { length, email ->
                     PasswordGeneratorConfigBuilder2.EmailPlusAddressing(
-                        length = length.toInt(),
+                        payload = PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated(
+                            length = length.toInt(),
+                        ),
                         email = email,
                     )
                 }
@@ -1412,7 +1460,9 @@ fun produceGeneratorState(
                     emailSubdomainAddressingEmailSink,
                 ) { length, email ->
                     PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing(
-                        length = length.toInt(),
+                        payload = PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated(
+                            length = length.toInt(),
+                        ),
                         email = email,
                     )
                 }
@@ -1607,24 +1657,22 @@ fun produceGeneratorState(
                                 value = password,
                                 type = CopyText.Type.PASSWORD,
                             )
-                        }
-                        val actions = kotlin.run {
-                            val list = mutableListOf<FlatItemAction>()
-                            if (canWrite && hasAccounts && type.username) {
-                                list += FlatItemAction(
-                                    leading = icon(Icons.Outlined.Add),
-                                    title = Res.string.generator_create_item_with_username_title.wrap(),
-                                    onClick = ::createLoginWithUsername.partially1(password),
-                                )
+                            section {
+                                if (canWrite && hasAccounts && type.username) {
+                                    this += FlatItemAction(
+                                        leading = icon(Icons.Outlined.Add),
+                                        title = Res.string.generator_create_item_with_username_title.wrap(),
+                                        onClick = ::createLoginWithUsername.partially1(password),
+                                    )
+                                }
+                                if (canWrite && hasAccounts && type.password) {
+                                    this += FlatItemAction(
+                                        leading = icon(Icons.Outlined.Add),
+                                        title = Res.string.generator_create_item_with_password_title.wrap(),
+                                        onClick = ::createLoginWithPassword.partially1(password),
+                                    )
+                                }
                             }
-                            if (canWrite && hasAccounts && type.password) {
-                                list += FlatItemAction(
-                                    leading = icon(Icons.Outlined.Add),
-                                    title = Res.string.generator_create_item_with_password_title.wrap(),
-                                    onClick = ::createLoginWithPassword.partially1(password),
-                                )
-                            }
-                            list.toPersistentList()
                         }
                         GeneratorState.Value(
                             title = null,
@@ -1637,11 +1685,7 @@ fun produceGeneratorState(
                             } else {
                                 persistentListOf()
                             },
-                            actions = if (password.isNotEmpty()) {
-                                actions
-                            } else {
-                                persistentListOf()
-                            },
+                            actions = persistentListOf(),
                             onCopy = if (password.isNotEmpty()) {
                                 copyItemFactory::copy
                                     .partially1(password)
@@ -1664,17 +1708,15 @@ fun produceGeneratorState(
                                 privateKeyExport = privateKeyExport,
                                 copyItemFactory = copyItemFactory,
                             )
-                        }
-                        val actions = kotlin.run {
-                            val list = mutableListOf<FlatItemAction>()
-                            if (canWrite && hasAccounts && type.sshKey) {
-                                list += FlatItemAction(
-                                    leading = icon(Icons.Outlined.Add),
-                                    title = Res.string.generator_create_item_with_ssh_key_title.wrap(),
-                                    onClick = ::createSshKeyWithKeyPair.partially1(keyPair),
-                                )
+                            section {
+                                if (canWrite && hasAccounts && type.sshKey) {
+                                    this += FlatItemAction(
+                                        leading = icon(Icons.Outlined.Add),
+                                        title = Res.string.generator_create_item_with_ssh_key_title.wrap(),
+                                        onClick = ::createSshKeyWithKeyPair.partially1(keyPair),
+                                    )
+                                }
                             }
-                            list.toPersistentList()
                         }
                         GeneratorState.Value(
                             title = keyPair.type.title,
@@ -1682,7 +1724,7 @@ fun produceGeneratorState(
                             source = passwordw,
                             strength = false,
                             dropdown = dropdown,
-                            actions = actions,
+                            actions = persistentListOf(),
                             onCopy = null,
                             onRefresh = refreshValue,
                         )
@@ -1718,125 +1760,251 @@ fun produceGeneratorState(
         .map { tipVisibilityItem ->
             optionsStatic.add(0, tipVisibilityItem)
         }
+
+    fun <T, R> generateFrom(
+        builder: T,
+        convert: (T) -> IO<R>,
+    ): IO<R> = convert(builder)
+
+    fun generateFromPasswordConfigBuilder(
+        context: String? = null,
+        type: CopyText.Type,
+        builder: PasswordGeneratorConfigBuilder2,
+    ): IO<GeneratorState.Suggestion?> = generateFrom(
+        builder = builder,
+        convert = {
+            val config = it.build()
+            getPassword(generatorContext, config)
+                .map { passwordResult ->
+                    val valueResult = passwordResult as? GetPasswordResult.Value
+                    valueResult?.value
+                }
+                .map { password ->
+                    password
+                        ?: return@map null
+                    GeneratorState.Suggestion(
+                        length = password.length,
+                        context = context,
+                        value = password,
+                        onCopy = {
+                            copyItemFactory.copy(
+                                text = password,
+                                hidden = false,
+                                type = type,
+                            )
+                        },
+                    )
+                }
+        },
+    )
+
+    fun getSuggestionsByBuilders(
+        vararg builders: PasswordGeneratorConfigBuilder2,
+    ): Flow<ImmutableList<GeneratorState.Suggestion>> {
+        return flow {
+            val suggestions = builders
+                .mapNotNull { builder ->
+                    generateFromPasswordConfigBuilder(
+                        type = CopyText.Type.PASSWORD,
+                        builder = builder,
+                    ).attempt().bind().getOrNull()
+                }
+                .toPersistentList()
+            emit(suggestions)
+        }
+    }
+
+    fun getSuggestionsForPassword(): Flow<ImmutableList<GeneratorState.Suggestion>> {
+        return getSuggestionsByBuilders(
+            PasswordGeneratorConfigBuilder2.Password(
+                length = 24,
+                includeSymbols = false,
+            ),
+            PasswordGeneratorConfigBuilder2.Password(
+                length = 24,
+            ),
+            PasswordGeneratorConfigBuilder2.Password(
+                length = 16,
+            ),
+        )
+    }
+
+    fun getSuggestionsForPinCode(): Flow<ImmutableList<GeneratorState.Suggestion>> {
+        return getSuggestionsByBuilders(
+            PasswordGeneratorConfigBuilder2.PinCode(
+                length = 8,
+            ),
+            PasswordGeneratorConfigBuilder2.PinCode(
+                length = 6,
+            ),
+            PasswordGeneratorConfigBuilder2.PinCode(
+                length = 4,
+            ),
+        )
+    }
+
+    fun getSuggestionsForEmail(): Flow<ImmutableList<GeneratorState.Suggestion>> {
+        if (getProfiles == null) {
+            // If we do not have access to profiles, then
+            // just skip this suggestion.
+            return flowOf(persistentListOf())
+        }
+
+        return getProfiles()
+            .map { profiles ->
+                val profileLabel = translate(Res.string.account)
+                profiles
+                    .mapNotNull { profile ->
+                        profile.email
+                            .takeIf { email -> email.isNotBlank() }
+                    }
+                    .map { email ->
+                        GeneratorState.Suggestion(
+                            context = profileLabel,
+                            value = email,
+                            onCopy = {
+                                copyItemFactory.copy(
+                                    text = email,
+                                    hidden = false,
+                                    type = CopyText.Type.EMAIL,
+                                )
+                            },
+                        )
+                    }
+                    .toPersistentList()
+            }
+    }
+
+    fun getSuggestionsForEmailCatchAll(): Flow<ImmutableList<GeneratorState.Suggestion>> {
+        suspend fun generateOrNull(
+            uriHost: String,
+            emailDomain: String,
+        ) = generateFromPasswordConfigBuilder(
+            type = CopyText.Type.EMAIL,
+            context = uriHost,
+            builder = PasswordGeneratorConfigBuilder2.EmailCatchAll(
+                payload = PasswordGeneratorConfigBuilder2.EmailPayload.Value(
+                    data = uriHost,
+                ),
+                domain = emailDomain,
+            ),
+        ).attempt().bind().getOrNull()
+
+        return combine(
+            emailCatchAllDomainSink,
+            webUriContextWordsFlow,
+        ) { domain, hosts ->
+            hosts
+                .mapNotNull { host ->
+                    generateOrNull(
+                        uriHost = host,
+                        emailDomain = domain,
+                    )
+                }
+                .toPersistentList()
+        }
+    }
+
+    fun getSuggestionsForEmailPlusAddressing(): Flow<ImmutableList<GeneratorState.Suggestion>> {
+        suspend fun generateOrNull(
+            uriHost: String,
+            email: String,
+        ) = generateFromPasswordConfigBuilder(
+            type = CopyText.Type.EMAIL,
+            context = uriHost,
+            builder = PasswordGeneratorConfigBuilder2.EmailPlusAddressing(
+                payload = PasswordGeneratorConfigBuilder2.EmailPayload.Value(
+                    data = uriHost,
+                ),
+                email = email,
+            ),
+        ).attempt().bind().getOrNull()
+
+        return combine(
+            emailPlusAddressingEmailSink,
+            webUriContextWordsFlow,
+        ) { email, hosts ->
+            hosts
+                .mapNotNull { host ->
+                    generateOrNull(
+                        uriHost = host,
+                        email = email,
+                    )
+                }
+                .toPersistentList()
+        }
+    }
+
+    fun getSuggestionsForEmailSubdomainAddressing(): Flow<ImmutableList<GeneratorState.Suggestion>> {
+        suspend fun generateOrNull(
+            uriHost: String,
+            email: String,
+        ) = generateFromPasswordConfigBuilder(
+            type = CopyText.Type.EMAIL,
+            context = uriHost,
+            builder = PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing(
+                payload = PasswordGeneratorConfigBuilder2.EmailPayload.Value(
+                    data = uriHost,
+                ),
+                email = email,
+            ),
+        ).attempt().bind().getOrNull()
+
+        return combine(
+            emailSubdomainAddressingEmailSink,
+            webUriContextWordsFlow,
+        ) { email, hosts ->
+            hosts
+                .mapNotNull { host ->
+                    generateOrNull(
+                        uriHost = host,
+                        email = email,
+                    )
+                }
+                .toPersistentList()
+        }
+    }
+
     val suggestionsFlow = typeFlow
         .flatMapLatest { type ->
-            fun <T, R> generateFrom(
-                builder: T,
-                convert: (T) -> IO<R>,
-            ): IO<R> = convert(builder)
+            val out = mutableListOf<Flow<ImmutableList<GeneratorState.Suggestion>>>()
 
-            fun generateFromPasswordConfigBuilder(
-                type: CopyText.Type,
-                builder: PasswordGeneratorConfigBuilder2,
-            ): IO<GeneratorState.Suggestion?> = generateFrom(
-                builder = builder,
-                convert = {
-                    val config = it.build()
-                    getPassword(generatorContext, config)
-                        .map { passwordResult ->
-                            val valueResult = passwordResult as? GetPasswordResult.Value
-                            valueResult?.value
-                        }
-                        .map { password ->
-                            password
-                                ?: return@map null
-                            GeneratorState.Suggestion(
-                                length = password.length,
-                                value = password,
-                                onCopy = {
-                                    copyItemFactory.copy(
-                                        text = password,
-                                        hidden = false,
-                                        type = type,
-                                    )
-                                },
-                            )
-                        }
-                },
-            )
-
-            val v = when (type) {
-                is GeneratorType2.Password -> listOf(
-                    PasswordGeneratorConfigBuilder2.Password(
-                        length = 24,
-                        includeSymbols = false,
-                    ),
-                    PasswordGeneratorConfigBuilder2.Password(
-                        length = 24,
-                    ),
-                    PasswordGeneratorConfigBuilder2.Password(
-                        length = 16,
-                    ),
-                )
-                    .map { builder ->
-                        generateFromPasswordConfigBuilder(
-                            type = CopyText.Type.PASSWORD,
-                            builder = builder,
-                        )
-                    }
-
-                is GeneratorType2.PinCode -> listOf(
-                    PasswordGeneratorConfigBuilder2.PinCode(
-                        length = 8,
-                    ),
-                    PasswordGeneratorConfigBuilder2.PinCode(
-                        length = 6,
-                    ),
-                    PasswordGeneratorConfigBuilder2.PinCode(
-                        length = 4,
-                    ),
-                )
-                    .map { builder ->
-                        generateFromPasswordConfigBuilder(
-                            type = CopyText.Type.PASSWORD,
-                            builder = builder,
-                        )
-                    }
-
-                is GeneratorType2.Username,
-                is GeneratorType2.EmailCatchAll,
-                is GeneratorType2.EmailPlusAddressing,
-                is GeneratorType2.EmailSubdomainAddressing,
-                is GeneratorType2.EmailRelay,
-                    -> {
-                    //
-                    if (getProfiles == null) {
-                        return@flatMapLatest flowOf(persistentListOf())
-                    }
-
-                    return@flatMapLatest getProfiles()
-                        .map { profiles ->
-                            profiles
-                                .map { it.email }
-                                .toSortedSet()
-                                .map { email ->
-                                    GeneratorState.Suggestion(
-                                        value = email,
-                                        onCopy = {
-                                            copyItemFactory.copy(
-                                                text = email,
-                                                hidden = false,
-                                                type = CopyText.Type.EMAIL,
-                                            )
-                                        },
-                                    )
-                                }
-                                .toPersistentList()
-                        }
-                }
-
-                else -> {
-                    emptyList()
-                }
+            // Passwords
+            if (type is GeneratorType2.Password) {
+                out += getSuggestionsForPassword()
             }
-            flowOf(v)
-                .map {
-                    it
-                        .mapNotNull {
-                            val value = it.attempt().bind().getOrNull()
-                                ?: return@mapNotNull null
-                            value
-                        }
+            // PINs
+            if (type is GeneratorType2.PinCode) {
+                out += getSuggestionsForPinCode()
+            }
+            // Email: catch all
+            if (type is GeneratorType2.EmailCatchAll) {
+                out += getSuggestionsForEmailCatchAll()
+            }
+            // Email: plus addressing
+            if (type is GeneratorType2.EmailPlusAddressing) {
+                out += getSuggestionsForEmailPlusAddressing()
+            }
+            // Email: plus addressing
+            if (type is GeneratorType2.EmailSubdomainAddressing) {
+                out += getSuggestionsForEmailSubdomainAddressing()
+            }
+            // Usernames
+            if (type is GeneratorType2.Username ||
+                type is GeneratorType2.EmailCatchAll ||
+                type is GeneratorType2.EmailPlusAddressing ||
+                type is GeneratorType2.EmailSubdomainAddressing ||
+                type is GeneratorType2.EmailRelay
+            ) {
+                out += getSuggestionsForEmail()
+            }
+
+            out
+                .combineToList()
+                .map { suggestionsNested ->
+                    suggestionsNested
+                        .flatten()
+                        .distinctBy { it.value }
                         .toPersistentList()
                 }
         }
@@ -1856,6 +2024,7 @@ fun produceGeneratorState(
                         val value = passwordResult.value
                         value
                     }
+
                     is GetPasswordResult.AsyncKey -> {
                         val value = passwordResult.keyPair.publicKey.fingerprint
                         value
@@ -2024,4 +2193,40 @@ private data class ValueGenerationEvent(
         val result: Either<Throwable, GetPasswordResult?>,
         val type: GeneratorType2,
     )
+}
+
+private suspend fun getWebUriContextWords(
+    tldService: TldService,
+    uris: List<String>,
+): List<String> {
+    return uris
+        .flatMap { uri ->
+            val isValidUri = validateUri(uri) == ValidationUri.OK
+            if (!isValidUri) {
+                return@flatMap emptyList()
+            }
+
+            val host = runCatching {
+                // We want to only take the web HTTP(s) URIs and
+                // ignore everything else.
+                val finalUri = when {
+                    uri.startsWith("http://", ignoreCase = true) ||
+                            uri.startsWith("https://", ignoreCase = true) -> uri
+
+                    !uri.contains("://") -> "http://$uri"
+                    else -> null
+                } ?: return@runCatching null
+                val parsedUri = URLBuilder(finalUri).build()
+                parsedUri.host
+            }.getOrNull()
+                ?: return@flatMap emptyList()
+
+            val domain = tldService.getDomainName(host)
+                .attempt()
+                .bind()
+                .getOrNull()
+            listOfNotNull(domain, host)
+        }
+        .distinct()
+        .sorted()
 }

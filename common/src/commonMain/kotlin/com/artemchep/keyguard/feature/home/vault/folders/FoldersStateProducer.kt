@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -25,6 +26,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -32,6 +34,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canDelete
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
 import com.artemchep.keyguard.res.Res
@@ -353,7 +356,6 @@ fun foldersScreenState(
                             val folders = selectedFolders.values
                                 .map { it.folder }
                             val route = VaultRoute.by(
-                                translator = this@produceScreenState,
                                 folders = folders,
                             )
                             val intent = NavigationIntent.NavigateToRoute(route)
@@ -442,7 +444,6 @@ fun foldersScreenState(
                                 },
                                 onClick = onClick {
                                     val route = VaultRoute.by(
-                                        translator = this@produceScreenState,
                                         folder = folder,
                                     )
                                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -500,9 +501,12 @@ fun foldersScreenState(
                     },
                 )
             }
+            .toList()
+        val itemsReShaped = items
+            .mapListShape()
             .toImmutableList()
         FoldersState.Content(
-            items = items,
+            items = itemsReShaped,
         )
     }
     combine(

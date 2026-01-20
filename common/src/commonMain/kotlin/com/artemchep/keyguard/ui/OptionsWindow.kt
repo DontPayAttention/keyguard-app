@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
@@ -14,15 +15,19 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.ui.theme.selectedContainer
@@ -35,7 +40,7 @@ fun DropdownScope.DropdownMenuItemFlat(
         is ContextItem.Section -> {
             Section(
                 modifier = Modifier
-                    .widthIn(max = DropdownMinWidth),
+                    .fillMaxWidth(),
                 text = action.title,
             )
         }
@@ -61,6 +66,11 @@ fun DropdownScope.DropdownMenuItemFlat(
 ) {
     DropdownMenuItemFlatLayout(
         modifier = Modifier
+            .padding(
+                horizontal = 8.dp,
+                vertical = 1.dp,
+            )
+            .clip(MaterialTheme.shapes.medium)
             .then(
                 if (action.selected) {
                     val background = MaterialTheme.colorScheme.selectedContainer
@@ -83,10 +93,19 @@ fun DropdownScope.DropdownMenuItemFlat(
             )
             .minimumInteractiveComponentSize(),
     ) {
-        FlatItemActionContent(
-            action = action,
-            compact = true,
-        )
+        val contentColor =
+            if (action.selected) {
+                val background = MaterialTheme.colorScheme.selectedContainer
+                contentColorFor(background)
+            } else {
+                LocalContentColor.current
+            }
+        CompositionLocalProvider(LocalContentColor provides contentColor) {
+            FlatItemActionContent(
+                action = action,
+                compact = true,
+            )
+        }
     }
 }
 
@@ -159,14 +178,11 @@ fun OptionsButton(
         val onDismissRequest = {
             isAutofillWindowShowing = false
         }
-        DropdownMenu(
-            modifier = Modifier
-                .widthIn(min = DropdownMinWidth),
+        KeyguardDropdownMenu(
             expanded = isAutofillWindowShowing,
             onDismissRequest = onDismissRequest,
         ) {
-            val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-            content(scope)
+            content(this)
         }
     }
 }

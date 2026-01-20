@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.firstOrNull
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DismissNotificationsByChannel
@@ -29,7 +30,9 @@ import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
+import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryItem
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
+import com.artemchep.keyguard.feature.generator.wordlist.list.WordlistListState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
@@ -37,9 +40,11 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.feature.watchtower.DISMISS_NOTIFICATIONS_DELAY_MS
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentHashSet
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.delay
@@ -330,6 +335,9 @@ fun produceGeneratorHistoryState(
                         onClickPasskey = {
                             null
                         },
+                        onClickPassword = {
+                            null
+                        },
                     ).copy(
                         passkeys = persistentListOf(),
                         attachments2 = persistentListOf(),
@@ -369,7 +377,11 @@ fun produceGeneratorHistoryState(
             ) { item ->
                 out += item
             }
-            out.toPersistentList()
+
+            val itemsReShaped = out
+                .mapListShape()
+                .toImmutableList()
+            itemsReShaped
         }
 
     itemsFlow

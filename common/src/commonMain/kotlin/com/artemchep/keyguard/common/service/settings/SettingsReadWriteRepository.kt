@@ -46,6 +46,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         saveUri: Boolean,
     ): IO<Unit>
 
+    fun setAdvertisePasskeysSupport(
+        advertisePasskeysSupport: Boolean,
+    ): IO<Unit>
+
     fun setAutofillCopyTotp(
         copyTotp: Boolean,
     ): IO<Unit>
@@ -162,6 +166,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         useAmoledDark: Boolean,
     ): IO<Unit>
 
+    fun setThemeM3Expressive(
+        expressive: Boolean,
+    ): IO<Unit>
+
     fun setKeepScreenOn(
         keepScreenOn: Boolean,
     ): IO<Unit>
@@ -192,5 +200,9 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setLocale(
         locale: String?,
+    ): IO<Unit>
+
+    fun setExposedDatabaseKey(
+        key: ByteArray?,
     ): IO<Unit>
 }

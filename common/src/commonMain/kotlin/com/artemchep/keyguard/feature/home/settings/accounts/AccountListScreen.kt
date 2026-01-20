@@ -5,12 +5,9 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.NoAccounts
-import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -18,7 +15,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.artemchep.keyguard.feature.EmptyView
-import com.artemchep.keyguard.feature.auth.login.LoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.home.settings.accounts.component.AccountListItem
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -27,12 +24,8 @@ import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultFab
-import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FabState
-import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
-import com.artemchep.keyguard.ui.icons.SyncIcon
-import com.artemchep.keyguard.ui.selection.SelectionBar
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
@@ -41,11 +34,13 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun AccountListScreen() {
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    val r = registerRouteResultReceiver(LoginRoute()) {
+    val r = registerRouteResultReceiver(BitwardenLoginRoute()) {
         controller.queue(NavigationIntent.Pop)
     }
 
-    val accountListStateWrapper = accountListScreenState()
+    val accountListStateWrapper = accountListScreenState(
+        rootRouterName = "accounts",
+    )
     val accountListState = remember(accountListStateWrapper) {
         accountListStateWrapper.unwrap(
             onAddAccount = {
@@ -105,42 +100,9 @@ fun AccountListScreenContent(
             )
         },
         bottomBar = {
-            ExpandedIfNotEmpty(
-                valueOrNull = state.selection,
-            ) { selection ->
-                SelectionBar(
-                    title = {
-                        val text = stringResource(Res.string.selection_n_selected, selection.count)
-                        Text(text)
-                    },
-                    trailing = {
-                        val updatedOnSelectAll by rememberUpdatedState(selection.onSelectAll)
-                        IconButton(
-                            enabled = updatedOnSelectAll != null,
-                            onClick = {
-                                updatedOnSelectAll?.invoke()
-                            },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.SelectAll,
-                                contentDescription = null,
-                            )
-                        }
-                        IconButton(
-                            enabled = selection.onSync != null,
-                            onClick = {
-                                selection.onSync?.invoke()
-                            },
-                        ) {
-                            SyncIcon(rotating = false)
-                        }
-                        OptionsButton(
-                            actions = selection.actions,
-                        )
-                    },
-                    onClear = selection.onClear,
-                )
-            }
+            AccountsSelection(
+                selection = state.selection,
+            )
         },
     ) {
         if (state.items.isEmpty()) {

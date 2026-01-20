@@ -45,10 +45,13 @@ import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.SkeletonItemAvatar
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
@@ -103,6 +106,7 @@ fun DuplicatesListScreen(
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -165,16 +169,13 @@ fun DuplicatesListScreen(
                         val onDismissRequest = {
                             isAutofillWindowShowing = false
                         }
-                        DropdownMenu(
-                            modifier = Modifier
-                                .widthIn(min = DropdownMinWidth),
+                        KeyguardDropdownMenu(
                             expanded = isAutofillWindowShowing,
                             onDismissRequest = onDismissRequest,
                         ) {
-                            val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
                             loadableState.getOrNull()?.sensitivities.orEmpty()
                                 .forEachIndexed { index, action ->
-                                    scope.DropdownMenuItemFlat(
+                                    DropdownMenuItemFlat(
                                         action = action,
                                     )
                                 }
@@ -195,11 +196,9 @@ fun DuplicatesListScreen(
     ) {
         loadableState.fold(
             ifLoading = {
-                for (i in 0..2) {
-                    item(i) {
-                        SkeletonItem()
-                    }
-                }
+                skeletonItems(
+                    avatar = SkeletonItemAvatar.LARGE,
+                )
             },
             ifOk = { state ->
                 val items = state.items

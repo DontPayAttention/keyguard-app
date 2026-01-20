@@ -1,14 +1,15 @@
 package com.artemchep.keyguard.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -23,15 +24,13 @@ import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.usecase.GetColors
 import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetTheme
+import com.artemchep.keyguard.common.usecase.GetThemeExpressive
 import com.artemchep.keyguard.common.usecase.GetThemeUseAmoledDark
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.theme.hasDarkThemeEnabled
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.theme.monet.ColorSchemeFactory
-import com.artemchep.keyguard.ui.theme.monet.darkMonetCompatScheme
-import com.artemchep.keyguard.ui.theme.monet.lightMonetCompatScheme
-import dev.kdrag0n.colorkt.rgb.LinearSrgb
+import com.artemchep.keyguard.ui.theme.m3.dynamicColorScheme
 import org.jetbrains.compose.resources.Font
 import org.kodein.di.compose.rememberInstance
 
@@ -267,7 +266,11 @@ fun KeyguardTheme(
 ) {
     val getTheme by rememberInstance<GetTheme>()
     val getThemeUseAmoledDark by rememberInstance<GetThemeUseAmoledDark>()
+    val getThemeExpressive by rememberInstance<GetThemeExpressive>()
     val getColors by rememberInstance<GetColors>()
+    val expressive by remember(getThemeExpressive) {
+        getThemeExpressive()
+    }.collectAsState(true)
     val theme by remember(getTheme) {
         getTheme()
     }.collectAsState(initial = null)
@@ -348,7 +351,11 @@ fun KeyguardTheme(
                     onSecondary = scheme.onSecondary,
                 ),
         ) {
-            content()
+            CompositionLocalProvider(
+                GlobalExpressive provides expressive,
+            ) {
+                content()
+            }
         }
     }
 }
@@ -359,16 +366,10 @@ private fun appColorScheme(
     isDarkColorScheme: Boolean,
 ): ColorScheme = colors?.let { c ->
     runCatching {
-        val palette = run {
-            val tempColor = Color(c.color)
-            val primaryColor = LinearSrgb(
-                r = tempColor.red.toDouble(),
-                g = tempColor.green.toDouble(),
-                b = tempColor.blue.toDouble(),
-            )
-            ColorSchemeFactory.getFactory().getColor(primaryColor)
-        }
-        if (isDarkColorScheme) palette.darkMonetCompatScheme() else palette.lightMonetCompatScheme()
+        dynamicColorScheme(
+            keyColor = Color(c.color),
+            isDark = isDarkColorScheme,
+        )
     }.getOrNull()
 } ?: run {
     if (isDarkColorScheme) {
@@ -386,3 +387,25 @@ expect fun appDynamicLightColorScheme(): ColorScheme
 
 @Composable
 expect fun SystemUiThemeEffect()
+
+fun plainDarkColorScheme() = darkColorScheme(
+    surfaceContainer = Color(red = 32, green = 33, blue = 33),
+    surfaceContainerHigh = Color(red = 43, green = 43, blue = 44),
+    surfaceContainerHighest = Color(red = 54, green = 54, blue = 54),
+    surfaceContainerLow = Color(red = 27, green = 27, blue = 27),
+    surfaceContainerLowest = Color(red = 20, green = 22, blue = 22),
+    surfaceTint = Color(red = 250, green = 250, blue = 250),
+    surface = Color(red = 20, green = 22, blue = 22),
+    background = Color(red = 20, green = 22, blue = 22),
+)
+
+fun plainLightColorScheme() = lightColorScheme(
+    surfaceContainer = Color(red = 245, green = 245, blue = 245),
+    surfaceContainerHigh = Color(red = 238, green = 240, blue = 240),
+    surfaceContainerHighest = Color(red = 222, green = 224, blue = 225),
+    surfaceContainerLow = Color(red = 250, green = 250, blue = 250),
+    surfaceContainerLowest = Color(red = 255, green = 255, blue = 255),
+    surfaceTint = Color(red = 27, green = 27, blue = 27),
+    surface = Color(red = 255, green = 255, blue = 255),
+    background = Color(red = 255, green = 255, blue = 255),
+)

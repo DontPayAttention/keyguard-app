@@ -9,7 +9,9 @@
     <string name="show_keyguard">Показать Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Название</string>
+    <string name="description">Description</string>
     <string name="account_name">Название учетной записи</string>
+    <string name="database_name">Database name</string>
     <string name="enabled">Включено</string>
     <string name="disabled">Отключено</string>
     <string name="wordlist">Список слов</string>
@@ -19,6 +21,7 @@
     <string name="current_password">Текущий пароль</string>
     <string name="new_password">Новый пароль</string>
     <string name="no_password">Нет паролей</string>
+    <string name="advanced_options">Advanced</string>
     <string name="email">Эл. почта</string>
     <string name="email_verified">Подтверждено</string>
     <string name="email_not_verified">Не подтверждено</string>
@@ -28,13 +31,16 @@
     <string name="conceal_value">Скрыть значение</string>
     <string name="field_label">Метка</string>
     <string name="field_value">Значение</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <string name="tag_value">Value</string>
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Количество посещений</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Максимальное количество посещений</string>
+    <string name="ready_status_beta">Beta</string>
+    <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">Узнать больше</string>
     <string name="phone_number">Номер телефона</string>
     <string name="passport_number">Номер паспорта</string>
@@ -79,7 +85,7 @@
     <string name="time">Время</string>
     <string name="attachments">Вложения</string>
     <string name="attachments_empty_label">Без вложений</string>
-    <string name="deactivated">Выключено</string>
+    <string name="deactivated">Деактивировано</string>
     <string name="expired">Срок действия истёк</string>
     <string name="expiring_soon">Срок действия истекает</string>
     <string name="item_incomplete_title">Неполные данные</string>
@@ -95,6 +101,10 @@
     <string name="folder">Папка</string>
     <string name="folders">Папки</string>
     <string name="folders_empty_label">Нет папок</string>
+    <string name="tag_none">No tag</string>
+    <string name="tag">Tag</string>
+    <string name="tags">Tags</string>
+    <string name="tags_empty_label">No tags</string>
     <string name="collection_none">Без коллекции</string>
     <string name="collection">Коллекция</string>
     <string name="collections">Коллекции</string>
@@ -109,6 +119,7 @@
     <string name="category">Категория</string>
     <string name="command">Команда</string>
     <string name="execute_command">Выполнить</string>
+    <string name="context_based_suggestions">Context-based suggestions</string>
     <!-- Add (something) -->
     <string name="add">Добавить</string>
     <string name="add_integration">Добавить интеграцию</string>
@@ -141,7 +152,11 @@
     <string name="select_file">Выберите файл</string>
     <string name="autofill">Автозаполнение</string>
     <string name="autofill_and_save_uri">Заполнить и сохранить информацию о приложении или сайте</string>
+    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
+    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Ключ доступа</string>
+    <string name="credential_login_create_header">Create a login</string>
+    <string name="credential_password_create_header">Create a password</string>
     <string name="passkey_create_header">Создать passkey</string>
     <string name="passkey_unlock_header">Разблокировать Keyguard</string>
     <string name="passkey_auth_via_header">Подтверждение запроса авторизации…</string>
@@ -163,7 +178,7 @@
     <string name="passkey_discoverable">Источник данных авторизации</string>
     <string name="passkey_user_username">Имя пользователя</string>
     <string name="passkey_user_display_name">Отображаемое имя</string>
-    <string name="ignored_alerts">Игнорированные оповещения</string>
+    <string name="ignored_alerts">Проигнорированные оповещения</string>
     <string name="api_key">Ключ API</string>
     <string name="domain">Домен</string>
     <string name="add_to_home_screen">Добавить на главный экран</string>
@@ -176,6 +191,7 @@
     <string name="one_time_password">Одноразовый пароль</string>
     <string name="one_time_password_authenticator_key">Ключ аутентификатора</string>
     <string name="passkey_use_short">Использовать</string>
+    <string name="password_save">Save password</string>
     <string name="passkey_save">Сохранить ключ доступа</string>
     <string name="passkey_available">Доступен Passkey</string>
     <string name="twofa_available">Доступна двухфакторная аутентификация</string>
@@ -191,6 +207,7 @@
     <string name="requested_verification_email">Запрошено письмо с подтверждением</string>
     <string name="web_vault">Веб-хранилище</string>
     <string name="launch_web_vault">Запустить веб-хранилище</string>
+    <string name="local_vault">Local vault</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Запомнить меня</string>
     <!-- A Trash screen -->
@@ -211,9 +228,13 @@
     <string name="encryption_random_bits_data">Случайные <xliff:g id="length" example="64">%1$d</xliff:g>-битные данные</string>
     <string name="none">Нет</string>
     <string name="text">Текст</string>
+    <string name="linked_app">Linked app</string>
     <string name="linked_apps">Связанные приложения</string>
+    <string name="linked_uri">Linked URI</string>
     <string name="linked_uris">Связанные URI</string>
+    <string name="custom_field">Custom field</string>
     <string name="custom_fields">Пользовательские поля</string>
+    <string name="custom_field_toggle_boolean_value">Toggle value</string>
     <string name="reveal_secure_note">Показать защищенную заметку</string>
     <string name="hide_secure_note">Скрыть защищенную заметку</string>
     <string name="master_password_hint">Подсказка к мастер-паролю</string>
@@ -223,6 +244,7 @@
     <string name="key_type">Тип ключа</string>
     <string name="key_pair">Пара ключей</string>
     <string name="key_ssh">SSH-ключ</string>
+    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
     <string name="fingerprint_phrase">Фраза отпечатка</string>
     <string name="fingerprint_phrase_help_title">Что такое фраза отпечатка?</string>
     <string name="filter_auth_reprompt_items">Повторная аутентификация</string>
@@ -231,6 +253,17 @@
     <string name="bitwarden_premium">Bitwarden премиум</string>
     <string name="bitwarden_premium_required">Требуется премиум Bitwarden</string>
     <string name="bitwarden_unofficial_server">Неофициальный Bitwarden сервер</string>
+    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Clear</string>
+    <string name="replace_key_file">Replace a key file</string>
+    <string name="select_key_file">Select a key file</string>
+    <string name="select_database_file">Select a database file</string>
+    <string name="replace_database_file">Replace a database file</string>
+    <string name="open_database">Open a database</string>
+    <string name="create_database">Create a database</string>
+    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
+    <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">На заметку: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Генерируйте уникальные письма для лучшей конфиденциальности.</string>
     <string name="account_last_synced_at">Последний раз синхронизировано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -259,12 +292,14 @@
     <string name="folder_action_create_title">Создать папку</string>
     <string name="folder_delete_one_confirmation_title">Удалить папку?</string>
     <string name="folder_delete_many_confirmation_title">Удалить папки?</string>
-    <string name="folder_delete_confirmation_text">Эта запись(и) будет удалено. Вы не можете отменить это действие.</string>
+    <string name="folder_delete_confirmation_text">Эти записи будут удалены. Это действие отменить нельзя.</string>
     <string name="ciphers_recently_opened">Недавно открытые</string>
     <string name="ciphers_often_opened">Часто открытые</string>
     <string name="ciphers_history_empty">Истории пока нет</string>
     <string name="ciphers_view_details">Подробнее</string>
     <string name="ciphers_save_to">Сохранить в</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
     <string name="ciphers_action_add_to_favorites_title">Добавить в избранное</string>
     <string name="ciphers_action_remove_from_favorites_title">Удалить из избранного</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Включить повторную аутентификацию</string>
@@ -381,9 +416,9 @@
     <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к электронной почте</string>
     <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру телефона</string>
     <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к SSN</string>
-    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> призван к имени пользователя</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к имени пользователя</string>
     <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру паспорта</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> призван к номеру лицензии</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру лицензии</string>
     <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к имени</string>
     <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к фамилии</string>
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к полному имени</string>
@@ -424,6 +459,7 @@
     <string name="copied_value">Скопировано значение</string>
     <string name="copied_url">Скопирован URL</string>
     <string name="copied_uri">Скопирован URI</string>
+    <string name="copied_tag">Copied a tag</string>
     <string name="copied_package_name">Скопировано имя пакета</string>
     <string name="copied_key">Скопирован ключ</string>
     <string name="copied_fingerprint">Скопирован отпечаток</string>
@@ -440,6 +476,8 @@
     <string name="copied_cvv_code">Скопирован защитный код</string>
     <string name="copied_otp_code">Скопирован одноразовый пароль</string>
     <string name="copied_otp_secret_code">Скопирован секретный ключ</string>
+    <string name="found_otp_code">Found a one-time password</string>
+    <string name="found_value">Found a value</string>
     <string name="autofill_unlock_keyguard">Разблокировать Keyguard</string>
     <string name="autofill_open_keyguard">Открыть Keyguard</string>
     <string name="january">Январь</string>
@@ -466,7 +504,7 @@
     <string name="list_remove_confirmation_title">Удалить элемент?</string>
     <string name="list_add">Добавить ещё</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
-    <string name="fido2webauthn_action_go_title">Авторизация WebAutn</string>
+    <string name="fido2webauthn_action_go_title">Авторизация WebAuthn</string>
     <string name="fido2webauthn_action_return_title">Вернуться в приложение</string>
     <string name="expiry_tips_item_line1">Срок действия записи истекает <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
     <string name="expiry_tips_card_line1">Срок действия карты истекает <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Для плавного перехода можно выполнить несколько действий:</string>
@@ -495,16 +533,29 @@
     <string name="error_invalid_card_number">Недействительный номер карты</string>
     <string name="error_incorrect_password">Неверный пароль</string>
     <string name="error_otp_key_must_not_be_empty">Секретный ключ одноразового пароля не должен быть пустым</string>
+    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Не удалось создать ключ, недостаточно памяти. Проверьте настройки KDF сервера.</string>
     <string name="error_failed_generate_otp_code">Не удалось сгенерировать OTP код</string>
     <string name="error_failed_create_passkey">Не удалось создать passkey</string>
+    <string name="error_failed_create_password">Failed to create a password</string>
     <string name="error_failed_use_passkey">Ошибка авторизации запроса</string>
+    <string name="error_failed_use_password">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Не удалось открыть URI</string>
     <string name="error_failed_format_placeholder">Не удалось форматировать поле</string>
     <string name="error_failed_open_app_for">Ни одно установленное приложение не может обработать этот запрос</string>
     <string name="error_failed_unknown">Произошла ошибка</string>
     <string name="error_failed_encrypt_biometric_key">Не удалось зашифровать биометрический ключ</string>
     <string name="error_failed_decrypt_biometric_key">Не удалось расшифровать биометрический ключ</string>
+    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps. Describes the risks
+        a user takes by adding an app to the list -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
     <string name="scanqr_title">Сканировать QR-код</string>
     <string name="scanqr_load_from_image_note">Загрузить и обработать QR-код из изображения.</string>
     <string name="scanqr_camera_permission_required_text">Разрешение на камеру требуется для сканирования QR-кодов.</string>
@@ -595,7 +646,7 @@
     <string name="emailrelay_base_env_server_url_label">URL сервера</string>
     <string name="emailrelay_base_env_note">Укажите URL-адрес сервера вашей установки.</string>
     <string name="wordlist_list_header_title">Список слов</string>
-    <string name="wordlist_list_section_title">Списки слова</string>
+    <string name="wordlist_list_section_title">Списки слов</string>
     <string name="wordlist_delete_one_confirmation_title">Удалить список?</string>
     <string name="wordlist_delete_many_confirmation_title">Удалить списки?</string>
     <string name="wordlist_edit_wordlist_title">Редактировать список слов</string>
@@ -610,7 +661,23 @@
     <string name="urloverride_regex_note">Переопределение будет применено к URL-адресам, соответствующим регулярному выражению.</string>
     <string name="urloverride_delete_one_confirmation_title">Удалить переопределение URL-адреса?</string>
     <string name="urloverride_delete_many_confirmation_title">Удалить переопределение URL-адреса?</string>
-    <string name="urloverride_empty_label">Нет переопределеных URL-адресов</string>
+    <string name="urloverride_empty_label">Нет переопределённых URL-адресов</string>
+    <string name="urlblock_header_title">URI block</string>
+    <string name="urlblock_list_header_title">Blocked URIs</string>
+    <string name="urlblock_list_section_title">Blocked URIs</string>
+    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URIs?</string>
+    <string name="urlblock_empty_label">No blocked URIs</string>
+    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
+    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
+    <string name="privilegedapps_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_section_title">Privileged apps</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
+    <string name="privilegedapps_empty_label">No privileged apps</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">Создайте зашифрованное хранилище, где будут храниться локальные данные.</string>
     <string name="setup_free_text">Продолжая вы подтверждаете, что купили Keyguard или имели активную лицензию.</string>
     <string name="setup_field_app_password_label">Пароль приложения</string>
@@ -651,6 +718,10 @@
     <string name="addsend_hide_text_by_default_title">При обращении к элементу скрыть текст по умолчанию</string>
     <string name="addsend_hide_email_title">Скрыть адрес email</string>
     <string name="addsend_max_access_count_note">Если включено, пользователи больше не будут иметь доступа к элементу после того, как достигнуто максимальное количество доступа</string>
+    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
+    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
+    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
+    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">Добавить аккаунт Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Мы не являемся аффилированными, связанными, уполномоченными, одобренными или каким-либо образом официально связанными с Bitwarden Inc., или с одним из её дочерних предприятий или филиалов.</string>
     <!--
@@ -684,6 +755,9 @@
     <string name="addaccount2fa_otp_note">Введите код подтверждения из приложения для аутентификации.</string>
     <string name="addaccount2fa_email_note">Введите код подтверждения, который был отправлен на адрес электронной почты <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Введите код подтверждения YubiKey вручную. Поместите курсор на поле ниже и запустите YubiKey.</string>
+    <string name="addkeepass_header_title">Add KeePass account</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
     <string name="provider_2fa_authenticator">Аутентификатор</string>
     <string name="provider_2fa_duo_organization">Duo (Организация)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web аутентификация</string>
@@ -708,7 +782,8 @@
     <string name="home_watchtower_label">Доз. башня</string>
     <string name="home_settings_label">Настройки</string>
     <string name="lock_reason_inactivity">Заблокировано из-за бездействия</string>
-    <string name="lock_reason_manually">Заблокирован вручную</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_manually">Заблокировано вручную</string>
     <string name="send_type_text">Текст</string>
     <string name="send_type_file">Файл</string>
     <string name="cipher_type_login">Логин</string>
@@ -784,8 +859,9 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Код безопасности</string>
     <string name="vault_view_saved_to_label">Сохранено в <xliff:g id="email" example="username@example.com">%1$s</xliff:g> на <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Пароль последний раз изменен <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_passkey_created_at_label">Ключ доступа создано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">Ключ доступа создан <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Последний раз изменено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Создано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Удалено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -849,7 +925,7 @@
     <string name="generator_email_forward_alias_type">Псевдоним электронной почты для пересылки</string>
     <string name="generator_key_length_title">Длина</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-бит</string>
-    <string name="generator_key_rsa_note">Все клиенты SSH поддерживают этот алгоритм. Для RSA рекомендуется размер ключа не менее 2048 бит, лучше - 4096 бит. Вполне возможно, что в обозримом будущем алгоритм RSA станет практически неуязвимым.</string>
+    <string name="generator_key_rsa_note">Все клиенты SSH поддерживают этот алгоритм. Для RSA рекомендуется размер ключа не менее 2048 бит, лучше - 4096 бит. Вполне возможно, что в обозримом будущем алгоритм RSA станет уязвимым.</string>
     <string name="generator_key_rsa_text">Совместим со всеми SSH серверами</string>
     <string name="generator_key_ed25519_note">Это самый быстрый и самый современный стандарт. Поддержка в SSH клиентах пока еще не универсальна.</string>
     <string name="generator_key_ed25519_text">Быстрый и самый современный стандарт</string>
@@ -870,12 +946,13 @@
     <string name="passwordhistory_clear_history_confirmation_text">Все пароли из истории будут удалены.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Удалить пароль из истории?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Удалить пароли из истории?</string>
+    <string name="block_autofill_header_title">Block autofill</string>
     <string name="watchtower_header_title">Дозорная башня</string>
     <string name="watchtower_section_password_strength_label">Надёжность пароля</string>
     <string name="watchtower_section_security_label">Безопасность</string>
     <string name="watchtower_section_maintenance_label">Инструменты</string>
     <string name="watchtower_item_new_alerts_title">Проверить новые оповещения</string>
-    <string name="watchtower_item_weak_passwords_title">Ненадёжный пароль</string>
+    <string name="watchtower_item_weak_passwords_title">Слабые пароли</string>
     <string name="watchtower_item_pwned_passwords_title">Скомпрометированные пароли</string>
     <string name="watchtower_item_pwned_passwords_text">Пароли, раскрытые в результате утечки данных. Такие пароли следует немедленно изменить.</string>
     <string name="watchtower_item_reused_passwords_title">Повторно использованные пароли</string>
@@ -948,6 +1025,8 @@
     <string name="settings_subscriptions_header_title">Keyguard премиум</string>
     <string name="settings_watchtower_header_title">Дозорная башня</string>
     <string name="settings_open_source_licenses_header_title">Лицензии открытого программного обеспечения</string>
+    <string name="pref_section_premium_title">Премиум</string>
+    <string name="pref_section_options_title">Параметры</string>
     <string name="pref_item_accounts_title">Учетные записи</string>
     <string name="pref_item_accounts_text">Добавление и просмотр учётных записей</string>
     <string name="pref_item_autofill_title">Автозаполнение</string>
@@ -995,6 +1074,7 @@
     <string name="pref_item_color_accent_title">Цвет оттенка</string>
     <string name="pref_item_color_scheme_title">Тема</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Использовать черную контрастную тему</string>
+    <string name="pref_item_color_scheme_expressive_title">Использовать экспрессивную тему</string>
     <string name="pref_item_open_links_in_external_browser_title">Открывать ссылки во внешнем браузере</string>
     <string name="pref_item_close_to_tray_title">Свернуть в трей</string>
     <string name="pref_item_check_pwned_passwords_title">Проверить на уязвимые пароли</string>
@@ -1069,7 +1149,13 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Обратите внимание, что некоторые сайты отключают автозаполнение поля пароля, а некоторые браузеры известны тем, что игнорируют флаг отключения автозаполнения</string>
     <string name="pref_item_autofill_save_request_title">Запрашивать сохранение данных</string>
     <string name="pref_item_autofill_save_request_text">Запрашивать обновление хранилища при заполнении формы</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Автосохранение информации приложения или сайта</string>
+    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
+    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
+    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Автоматически очищать буфер обмена</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Немедленно</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Никогда</string>
@@ -1080,7 +1166,7 @@
     <string name="pref_item_premium_membership_title">О членстве в Keyguard</string>
     <string name="pref_item_premium_membership_text">Премиум открывает дополнительные возможности и финансирует разработку приложения. Спасибо за вашу поддержку! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Подписки</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Ваша подписка будет автоматически продлена за 24 часа до её окончания, средства за подписку будет снято с вашей учетной записи в Google Play. Ви можете настроить автоматическое продление и отменить подписку в любой момент. На первую подписку вам может быть предложен бесплатный пробный период, за который не будут сняты средства, если подписка будет отменена до её окончания.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Ваша подписка будет автоматически продлена за 24 часа до её окончания, средства за подписку будет сняты с вашей учетной записи в Google Play. Ви можете настроить автоматическое продление и отменить подписку в любой момент. На первую подписку вам может быть предложен бесплатный пробный период, за который не будут сняты средства, если подписка будет отменена до её окончания.</string>
     <string name="pref_item_premium_membership_section_products_title">Товары</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не удалось загрузить список подписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не удалось загрузить список товаров</string>
@@ -1095,8 +1181,8 @@
     <string name="pref_item_permission_write_external_storage_grant">Разрешить запись на общий накопитель</string>
     <string name="pref_item_permission_camera_title">Камера</string>
     <string name="pref_item_permission_camera_text">Используется для сканирования QR-кодов</string>
-    <string name="pref_item_allow_two_panel_layout_in_landscape_title">Разрешить два панели в альбомном режиме</string>
-    <string name="pref_item_allow_two_panel_layout_in_portrait_title">Разрешить два панели в портретном режиме</string>
+    <string name="pref_item_allow_two_panel_layout_in_landscape_title">Разрешить две панели в альбомном режиме</string>
+    <string name="pref_item_allow_two_panel_layout_in_portrait_title">Разрешить две панели в портретном режиме</string>
     <string name="theme_dark">Тёмная</string>
     <string name="theme_light">Светлая</string>
     <string name="nav_animation_disabled">Отключено</string>

@@ -47,6 +47,7 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.ErrorView
 import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewRoute
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -64,10 +65,12 @@ import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
@@ -123,6 +126,7 @@ fun WordlistListScreen(
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -159,7 +163,8 @@ fun WordlistListScreen(
             )
         },
         floatingActionState = run {
-            val actions = loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.primaryActions.orEmpty()
+            val actions = loadableState.getOrNull()?.content?.getOrNull()
+                ?.getOrNull()?.primaryActions.orEmpty()
             val onClick = if (actions.isNotEmpty()) {
                 // lambda
                 {
@@ -187,20 +192,16 @@ fun WordlistListScreen(
                             primaryActionsDropdownVisibleState.value = false
                         }
                     }
-                    DropdownMenu(
-                        modifier = Modifier
-                            .widthIn(min = DropdownMinWidth),
+                    KeyguardDropdownMenu(
                         expanded = primaryActionsDropdownVisibleState.value,
                         onDismissRequest = onDismissRequest,
                     ) {
-                        val actions = loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.primaryActions.orEmpty()
-                        val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                        with(scope) {
-                            actions.forEachIndexed { index, action ->
-                                DropdownMenuItemFlat(
-                                    action = action,
-                                )
-                            }
+                        val actions = loadableState.getOrNull()?.content?.getOrNull()
+                            ?.getOrNull()?.primaryActions.orEmpty()
+                        actions.forEachIndexed { index, action ->
+                            DropdownMenuItemFlat(
+                                action = action,
+                            )
                         }
                     }
                 },
@@ -217,11 +218,7 @@ fun WordlistListScreen(
             .flatMap { it.content }
         when (contentState) {
             is Loadable.Loading -> {
-                for (i in 1..3) {
-                    item("skeleton.$i") {
-                        SkeletonItem()
-                    }
-                }
+                skeletonItems()
             }
 
             is Loadable.Ok -> {
@@ -304,9 +301,10 @@ private fun WordlistItem(
             Color.Unspecified
         }
     }
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
+        shapeState = item.shapeState,
         leading = {
             val accent = rememberSecretAccentColor(
                 accentLight = item.accentLight,

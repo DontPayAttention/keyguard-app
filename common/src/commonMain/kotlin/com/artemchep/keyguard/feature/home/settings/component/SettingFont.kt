@@ -11,6 +11,8 @@ import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetFontVariants
 import com.artemchep.keyguard.common.usecase.PutFont
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
@@ -100,7 +102,8 @@ private fun SettingFont(
     text: String,
     dropdown: List<FlatItemAction>,
 ) {
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.FontDownload),
         content = {
             FlatItemTextContent(

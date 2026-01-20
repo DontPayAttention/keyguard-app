@@ -3,6 +3,9 @@ package com.artemchep.keyguard.di
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.AppWorkerIm
 import com.artemchep.keyguard.common.service.Files
+import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
+import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
+import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
@@ -167,6 +170,7 @@ import com.artemchep.keyguard.common.usecase.GetProducts
 import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.GetSubscriptions
 import com.artemchep.keyguard.common.usecase.GetTheme
+import com.artemchep.keyguard.common.usecase.GetThemeExpressive
 import com.artemchep.keyguard.common.usecase.GetThemeUseAmoledDark
 import com.artemchep.keyguard.common.usecase.GetThemeVariants
 import com.artemchep.keyguard.common.usecase.GetTotpCode
@@ -219,6 +223,7 @@ import com.artemchep.keyguard.common.usecase.PutNavLabel
 import com.artemchep.keyguard.common.usecase.PutOnboardingLastVisitInstant
 import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.usecase.PutTheme
+import com.artemchep.keyguard.common.usecase.PutThemeExpressive
 import com.artemchep.keyguard.common.usecase.PutThemeUseAmoledDark
 import com.artemchep.keyguard.common.usecase.PutUseExternalBrowser
 import com.artemchep.keyguard.common.usecase.PutVaultLockAfterReboot
@@ -306,6 +311,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetPinCodeImpl
 import com.artemchep.keyguard.common.usecase.impl.GetProductsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetScreenStateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSubscriptionsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetThemeExpressiveImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeUseAmoledDarkImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeVariantsImpl
@@ -360,6 +366,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutNavAnimationImpl
 import com.artemchep.keyguard.common.usecase.impl.PutNavLabelImpl
 import com.artemchep.keyguard.common.usecase.impl.PutOnboardingLastVisitInstantImpl
 import com.artemchep.keyguard.common.usecase.impl.PutScreenStateImpl
+import com.artemchep.keyguard.common.usecase.impl.PutThemeExpressiveImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeUseAmoledDarkImpl
 import com.artemchep.keyguard.common.usecase.impl.PutUserExternalBrowserImpl
@@ -389,8 +396,22 @@ import com.artemchep.keyguard.copy.NumberFormatterJvm
 import com.artemchep.keyguard.copy.PasswordGeneratorDiceware
 import com.artemchep.keyguard.copy.SimilarityServiceJvm
 import com.artemchep.keyguard.copy.ZipServiceJvm
-import com.artemchep.keyguard.core.store.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppListEntity
+import com.artemchep.keyguard.common.service.urlblock.impl.UrlBlockRepositoryExposed
+import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
+import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
+import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
+import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
+import com.artemchep.keyguard.common.usecase.PutAutofillPasskeysEnabled
+import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasskeysEnabledImpl
+import com.artemchep.keyguard.common.usecase.impl.GetTotpCodeWithOffsetImpl
+import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
+import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptorImpl
@@ -398,6 +419,7 @@ import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
+import com.artemchep.keyguard.provider.bitwarden.usecase.BlockedUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlBroadCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlDuplicateCheckImpl
@@ -408,8 +430,6 @@ import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.UserAgent
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -524,6 +544,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GetTotpCodeWithOffset> {
+        GetTotpCodeWithOffsetImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<GetTwoFa> {
         GetTwoFaImpl(
             directDI = this,
@@ -604,6 +629,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GetAutofillBlockedUrisExposed> {
+        GetAutofillBlockedUrisExposedImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<GetAutofillDefaultMatchDetection> {
         GetAutofillDefaultMatchDetectionImpl(
             directDI = this,
@@ -621,6 +651,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GetAutofillRespectAutofillOff> {
         GetAutofillRespectAutofillOffImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetAutofillPasskeysEnabled> {
+        GetAutofillPasskeysEnabledImpl(
             directDI = this,
         )
     }
@@ -706,6 +741,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<PutThemeUseAmoledDark> {
         PutThemeUseAmoledDarkImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<PutThemeExpressive> {
+        PutThemeExpressiveImpl(
             directDI = this,
         )
     }
@@ -817,6 +857,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<PutAutofillPasskeysEnabled> {
+        PutAutofillPasskeysEnabledImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<PutAutofillSaveRequest> {
         PutAutofillSaveRequestImpl(
             directDI = this,
@@ -882,6 +927,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GetThemeExpressive> {
+        GetThemeExpressiveImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<GetColors> {
         GetColorsImpl(
             directDI = this,
@@ -896,6 +946,9 @@ fun globalModuleJvm() = DI.Module(
         GetProductsImpl(
             directDI = this,
         )
+    }
+    bindSingleton<BlockedUrlCheck> {
+        BlockedUrlCheckImpl(this)
     }
     bindSingleton<CipherUrlCheck> {
         CipherUrlCheckImpl(this)
@@ -1191,6 +1244,18 @@ fun globalModuleJvm() = DI.Module(
                     subclass(BitwardenCipher.Attachment.Local::class)
                     defaultDeserializer { BitwardenCipher.Attachment.Remote.serializer() }
                 }
+                // database
+                polymorphic(ServiceToken::class) {
+                    subclass(BitwardenToken::class)
+                    subclass(KeePassToken::class)
+                    defaultDeserializer { BitwardenToken.serializer() }
+                }
+                // privileged apps
+                polymorphic(PrivilegedAppListEntity.App::class) {
+                    subclass(PrivilegedAppListEntity.App.AndroidApp::class)
+                    subclass(PrivilegedAppListEntity.App.Unknown::class)
+                    defaultDeserializer { PrivilegedAppListEntity.App.Unknown.serializer() }
+                }
             }
         }
     }
@@ -1257,6 +1322,21 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<DeeplinkService> {
         DeeplinkServiceImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<AndroidAppGooglePlayParser> {
+        AndroidAppGooglePlayParser(
+            directDI = this,
+        )
+    }
+    bindSingleton<AndroidAppFDroidParser> {
+        AndroidAppFDroidParser(
+            directDI = this,
+        )
+    }
+    bindSingleton<IosAppAppStoreParser> {
+        IosAppAppStoreParser(
             directDI = this,
         )
     }
@@ -1436,9 +1516,9 @@ fun globalModuleJvm() = DI.Module(
             engine {
                 preconfigured = okHttpClient
             }
-            install(Logging) {
-                level = if (isRelease) LogLevel.INFO else LogLevel.ALL
-            }
+//            install(Logging) {
+//                level = if (isRelease) LogLevel.INFO else LogLevel.ALL
+//            }
             install(ContentNegotiation) {
                 register(ContentType.Application.Json, KotlinxSerializationConverter(json))
             }
@@ -1468,9 +1548,9 @@ fun globalModuleJvm() = DI.Module(
             engine {
                 preconfigured = okHttpClient
             }
-            install(Logging) {
-                level = if (isRelease) LogLevel.INFO else LogLevel.ALL
-            }
+//            install(Logging) {
+//                level = if (isRelease) LogLevel.INFO else LogLevel.ALL
+//            }
             install(ContentNegotiation) {
                 register(ContentType.Application.Json, KotlinxSerializationConverter(json))
             }
@@ -1499,10 +1579,10 @@ fun globalModuleJvm() = DI.Module(
                 if (!isRelease) {
                     val logRepository: LogRepository = instance()
                     val logger = HttpLoggingInterceptor.Logger { message ->
-                        logRepository.post(
-                            tag = "OkHttp",
-                            message = message,
-                        )
+//                        logRepository.post(
+//                            tag = "OkHttp",
+//                            message = message,
+//                        )
                     }
                     val logging = HttpLoggingInterceptor(logger).apply {
                         level = HttpLoggingInterceptor.Level.BODY
@@ -1517,6 +1597,7 @@ fun globalModuleJvm() = DI.Module(
     installSessionRepo()
     installSessionMetadataRepo()
     installSettingsRepo()
+    installExposedRepo()
 }
 
 private fun DI.Builder.installFingerprintRepo() {
@@ -1580,5 +1661,11 @@ private fun DI.Builder.installSettingsRepo() {
     }
     bindProvider<SettingsReadWriteRepository> {
         instance<SettingsRepositoryImpl>()
+    }
+}
+
+private fun DI.Builder.installExposedRepo() {
+    bindSingleton<UrlBlockRepositoryExposed> {
+        UrlBlockRepositoryExposed(this)
     }
 }

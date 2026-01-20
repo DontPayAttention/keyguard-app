@@ -339,7 +339,8 @@
     "documentation": "https://www.arbeitsagentur.de/passkey",
     "setup": "https://web.arbeitsagentur.de/oiambk/oiambk-selfservice-ui/konto-verwalten/passkeys-verwalten",
     "category": "Government",
-    "created_at": "2024-03-23T12:22:56.548692+00:00"
+    "created_at": "2024-03-23T12:22:56.548692+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Log in to your account\n2. Select \u201cSet up passkey\u201d\n3. Select \u201cCreate Passkey\u201d\n4. Create a new passkey on your device\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on September 22, 2025</sub></sup></p>"
   },
   {
     "id": "fa2a17946d65dc0b58cbd6e947adae4d",
@@ -377,6 +378,30 @@
     "notes": "Powered by Passage by 1Password."
   },
   {
+    "id": "51bb3299be9d7ec351746b218d0dcb08",
+    "name": "Atlassian",
+    "domain": "atlassian.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.atlassian.com/atlassian-account/docs/access-your-atlassian-account-with-a-passkey/",
+    "setup": "https://id.atlassian.com/manage-profile/security",
+    "category": "Information Technology",
+    "created_at": "2023-05-05T06:17:16.807824+00:00"
+  },
+  {
+    "id": "a994505f565a3c1271b8c3a50ca7158f",
+    "name": "Atlassian",
+    "domain": "atlassian.net",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.atlassian.com/atlassian-account/docs/access-your-atlassian-account-with-a-passkey/",
+    "setup": "https://id.atlassian.com/manage-profile/security",
+    "category": "Information Technology",
+    "created_at": "2023-09-15T10:02:19.411222+00:00"
+  },
+  {
     "id": "b91b373882b8442d694254959a6d7dcd",
     "name": "Authgear",
     "domain": "authgear.com",
@@ -409,6 +434,20 @@
     ],
     "category": "Information Technology",
     "created_at": "2023-12-13T19:28:12.855946+00:00"
+  },
+  {
+    "id": "a2121157b3a743ad06d31f6685401588",
+    "name": "BattleNet",
+    "domain": "battle.net",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://us.support.blizzard.com/en/article/000380922",
+    "setup": "https://account.battle.net/security",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-05-06T10:36:42.005847+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Login to the Battle.net Security Settings\n2. Select **Security** from the left side of the screen\n3. Select **+Create a passkey** \u2192 **Continue**\n4. Select the device you wish to setup a passkey on\n5. Follow the prompts on your specific device to complete passkey setup\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on October 22, 2025</sub></sup></p>"
   },
   {
     "id": "e911cc2dfd01290d4204754ce727df83",
@@ -663,6 +702,33 @@
     "created_at": "2022-12-13T00:00:00+00:00"
   },
   {
+    "id": "0fb51a3b8a3c8d404dfa1a5c9912c0b9",
+    "name": "Costco Canada",
+    "domain": "costco.ca",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://customerservice.costco.com/app/answers/answer_view/a_id/1016137/~/passkey-login---general-faqs",
+    "category": "eCommerce",
+    "created_at": "2023-11-19T17:28:23.687777+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Log into your Costco account\n2. Select Account at the top\n3. Choose **Introducing Passkeys** \u2192 **Create a passkey**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on October 22, 2025</sub></sup></p>"
+  },
+  {
+    "id": "314f10be8365e0509ddc91729c4030c2",
+    "name": "Costco",
+    "domain": "costco.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://customerservice.costco.com/app/answers/answer_view/a_id/1016137/~/passkey-login---general-faqs",
+    "setup": "https://signin.costco.com/fido/auth/ManagePasskeys.html",
+    "category": "eCommerce",
+    "created_at": "2023-03-23T21:18:53.082672+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Log into your Costco account\n2. Select **Account** at the top\n3. Choose **Introducing Passkeys** \u2192 **Create a passkey**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on October 22, 2025</sub></sup></p>"
+  },
+  {
     "id": "bf5e91b8d80c17557dc7dd4785b63523",
     "name": "Coveto Recruiting Software",
     "domain": "coveto.de",
@@ -756,6 +822,19 @@
     "created_at": "2024-01-21T14:10:54.400022+00:00"
   },
   {
+    "id": "265238192337dec54659326628ef8949",
+    "name": "Dell",
+    "domain": "dell.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.dell.com/en-us/lp/protect-your-account-faq",
+    "setup": "https://www.dell.com/myaccount/en-us/account-settings/profile",
+    "category": "eCommerce",
+    "created_at": "2023-03-30T21:25:16.840357+00:00",
+    "notes": "#### To set up a passkey on your Dell.com account: \n\n1. Sign into Dell.com\n2. Select your account name at the top right\n3. **Profile Settings**\n4. **Edit Profile**\n5. **Security Settings**\n6. **Add Passkey**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 Chrome 109+\n\n _There is a known issue on Windows devices where Windows Hello prompts alongside 1Password. Close (X) the Windows Hello prompt and click **Sign in** in the 1Password prompt as a temporary workaround._\n\n<p align=\"center\"><sup><sub>Updated on September 17, 2025</sub></sup></p>\n\n<p align=\"left\"><sup><sub>ref: AUTH-1413</sub></sup></p>"
+  },
+  {
     "id": "29000fd24c82c85fc045f8e5877d1b17",
     "name": "Devolutions",
     "domain": "devolutions.com",
@@ -799,7 +878,8 @@
     ],
     "documentation": "https://support.discord.com/hc/en-us/articles/25966860846231-Security-Keys-Passkeys-and-Passwordless-Login-on-Discord",
     "category": "Lifestyle & Leisure",
-    "created_at": "2024-09-17T20:22:32+00:00"
+    "created_at": "2024-09-17T20:22:32+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Sign into your Discord account\n2. Go to **Settings** \u2192 **My Account** \u2192 **Security**\n3. Select **Register a Security Key**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on October 22, 2025</sub></sup></p>"
   },
   {
     "id": "5ee16cc99b95276af3ed847f385e39ac",
@@ -851,6 +931,19 @@
     "notes": "Click the setup link and sign in with your email address and password, then follow the steps to set up passwordless login using biometrics to create a passkey. \n\nSign out, then sign back in with your email address and choose Log in Without Password to use your passkey."
   },
   {
+    "id": "a8c0208f1162459c3e561b82ff2412b5",
+    "name": "Dropbox",
+    "domain": "dropbox.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://help.dropbox.com/account-access/passkey-log-in",
+    "setup": "https://www.dropbox.com/account/security",
+    "category": "Information Technology",
+    "created_at": "2023-03-29T16:49:34.600846+00:00"
+  },
+  {
     "id": "d6908e62451d80590bb572f3a4c0c4fa",
     "name": "Duke",
     "domain": "duke.edu",
@@ -899,6 +992,19 @@
     "created_at": "2025-02-06T19:58:12+00:00"
   },
   {
+    "id": "c8f09cde5687339e173e794ff615e359",
+    "name": "Ente",
+    "domain": "ente.io",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://ente.io/blog/introducing-passkeys-on-ente/",
+    "category": "Information Technology",
+    "created_at": "2024-05-16T21:44:33.863427+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Log into ente.io\n2. Select the menu at the top left\n3. **Account** \u2192 **Passkeys**\n4. Create a name for your passkey \u2192 **Add passkey**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on October 22, 2025</sub></sup></p>"
+  },
+  {
     "id": "7390a69ef1f382189612985ece21ad8a",
     "name": "Microsoft Entra ID",
     "domain": "entra.microsoft.com",
@@ -909,7 +1015,7 @@
     "setup": "https://entra.microsoft.com",
     "category": "Information Technology",
     "created_at": "2023-09-30T10:34:07.960403+00:00",
-    "notes": "Microsoft Entra ID exclusively supports device-bound passkeys through FIDO2 security keys and the Microsoft Authenticator app. For more information: \n\nhttps://learn.microsoft.com/en-us/entra/identity/authentication/how-to-enable-passkey-fido2\n"
+    "notes": "#### To set up a passkey:\n\n1. [Sign in to your MyAccount Security Info.](mysignins.microsoft.com/security-info)\n2. Choose Add sign-in method.\n3. Select Passkey.\n4. Follow the instructions on your device.\n5. Provide a name for your passkey.\n\n<p align=\"center\"><sup><sub>Updated on December 3, 2025</sub></sup></p>"
   },
   {
     "id": "493e539072cc378649c3b2363ba03409",
@@ -922,6 +1028,18 @@
     "setup": "https://account.eslgaming.com/mfa",
     "created_at": "2024-05-20T10:53:54.047042+00:00",
     "notes": "Passkeys are available after successfully creating backup codes"
+  },
+  {
+    "id": "bb85245d26b9026095c02bd5d16c6cc8",
+    "name": "Facebook",
+    "domain": "facebook.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.facebook.com/help/1181045243159511",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-03-22T20:08:01.573764+00:00",
+    "notes": "**For now, passkey is only supported on mobile devices. This means you will still need to enter your username and password to access Facebook or Messenger on a non-mobile device like your computer.**\n\n<br>\n\n#### To set up a passkey:\n\n1. On a mobile device, sign into the Facebook app\n2. Tap the **Menu icon** at the bottom right\n3. In the top section where it says **Meta Accounts Center** tap **See more in Accounts Center**\n4. Tap **Password and security** then **Passkey**\n5. Follow the prompts to save a passkey in 1Password\n\n#### Supported browsers and devices:\n\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\n\n\n<p align=\"center\"><sup><sub>Updated on December 9, 2025</sub></sup></p>"
   },
   {
     "id": "baf9c3bf35911171a96c31a7bb6cb78c",
@@ -1350,6 +1468,18 @@
     "created_at": "2023-07-14T13:16:30.051967+00:00"
   },
   {
+    "id": "c65948e8bcba4ad57511949de68c417a",
+    "name": "Atlassian",
+    "domain": "id.atlassian.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.atlassian.com/atlassian-account/docs/access-your-atlassian-account-with-a-passkey/",
+    "setup": "https://id.atlassian.com/manage-profile/security",
+    "category": "Information Technology",
+    "created_at": "2023-03-30T21:26:54.14783+00:00"
+  },
+  {
     "id": "4db2a87f650fddc9dc3563ce117efabf",
     "name": "au",
     "domain": "id.auone.jp",
@@ -1406,6 +1536,19 @@
     "setup": "https://id.tokyu.co.jp/user/passkey/me",
     "category": "Information Technology",
     "created_at": "2024-05-13T12:46:24.529221+00:00"
+  },
+  {
+    "id": "d4f475a55e4040639ca646b5c89b811e",
+    "name": "WealthNavi",
+    "domain": "id.wealthnavi.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support-id.wealthnavi.com/hc/ja/articles/50103324913945-%E3%83%91%E3%82%B9%E3%82%AD%E3%83%BC%E3%82%92%E8%A8%AD%E5%AE%9A%E3%81%99%E3%82%8B%E3%81%AB%E3%81%AF%E3%81%A9%E3%81%86%E3%81%97%E3%81%9F%E3%82%89%E3%82%88%E3%81%84%E3%81%A7%E3%81%99%E3%81%8B",
+    "setup": "https://id.wealthnavi.com/customer/profile/",
+    "category": "Finance",
+    "created_at": "2025-09-22T17:34:04+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Enter your registered email address (WealthNavi ID) on the login screen and click \"Log in with ID and password.\"\n2. Enter your registered password and click \"Login.\"\n3. The screen will switch to the additional authentication code input screen, and the additional authentication code will be sent to your registered email address. Enter the additional authentication code you received in the authentication code field on the screen and press \"Authenticate.\"\n4. When the \"Passkey\" setting screen appears, press \"Set.\"\n\n<p align=\"center\" style=\"font-style: italic;\">This has been translated from Japanese.</p>\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on September 22, 2025</sub></sup></p>"
   },
   {
     "id": "af06d6eada560bf0fc02dd4c31d21641",
@@ -1503,6 +1646,19 @@
     "category": "Information Technology",
     "created_at": "2023-12-17T12:30:56.187095+00:00",
     "notes": "To add to your account go to _\"Param\u00e8tres > S\u00e9curit\u00e9 > Ajouter une cl\u00e9 d'acc\u00e8s\"_.\n\nTo log in with a passkey, simply click _\"Utiliser une cl\u00e9 d'acc\u00e8s\"_ on the login screen."
+  },
+  {
+    "id": "71e3f551f0b410afb32e9be0c3adecd5",
+    "name": "Kraken",
+    "domain": "kraken.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "http://support.kraken.com/articles/how-to-enable-multiple-2fa",
+    "setup": "https://www.kraken.com/c/account-settings/security",
+    "category": "Finance",
+    "created_at": "2023-06-12T19:29:18.237395+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Click on your profile icon in the bottom left corner of the page and select **Security**\n2. Click **Add a Passkey** or a pop-up will appear.\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on September 22, 2025</sub></sup></p>"
   },
   {
     "id": "9b8b0a3dfa678e8f6641ee4939bfd9b3",
@@ -1666,6 +1822,30 @@
     "created_at": "2023-03-22T20:31:28.756285+00:00"
   },
   {
+    "id": "f326ce4c02f835ff55916db8dad8c903",
+    "name": "Lululemon",
+    "domain": "lululemon.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://shop.lululemon.com/account/profile",
+    "category": "eCommerce",
+    "created_at": "2025-06-19T14:53:19.754998+00:00",
+    "notes": "#### To set up a passkey on your lululemon account: \n\n1. Sign into your account\n2. Go to your profile\n3. In the security section, click \"+ Add a Passkey\"\n4. Follow the prompts from 1Password and save\n\n\n \n \n\n<p align=\"center\"><sup><sub>Updated on August 13, 2025</sub></sup></p>"
+  },
+  {
+    "id": "1efa796241c1bcb84ef30ec841865fc5",
+    "name": "Luma",
+    "domain": "luma.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.luma.com/p/passkeys",
+    "setup": "https://luma.com/settings",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2025-10-08T17:19:16.996702+00:00"
+  },
+  {
     "id": "5b9030218f1bee1e295009ad2a4fc6f9",
     "name": "Luno",
     "domain": "luno.com",
@@ -1791,7 +1971,7 @@
     "setup": "https://go.microsoft.com/fwlink/?linkid=2250685",
     "category": "Information Technology",
     "created_at": "2024-05-02T13:41:20+00:00",
-    "notes": "### Creating a passkey\nTo create a passkey for your Microsoft account, follow these steps on the device for which you\u2019d like to create a passkey:\n\n\n1. [Sign in to your Microsoft account Advanced Security Options](https://go.microsoft.com/fwlink/?linkid=2250685) for personal accounts, or [MyAccount Security info](https://mysignins.microsoft.com/security-info) for work or school accounts.\n2. Choose Add a new way to sign in or verify.\n3. Select Face, fingerprint, PIN, or security key.\n4. Follow the instructions on your device.\n5. Provide a name for your passkey.\n\n<br>\n\n---\n\n<br>\n\n### Using your passkey to sign in\nTo sign into your Microsoft account with a passkey, follow these steps whenever you get a sign-in prompt. \n\n\n1. Choose Sign-in options, or Other ways to sign in.\n2. Select Face, Fingerprint, PIN, or security key.\n3. Select your passkey from the list available.\n\nYour device will open a security window where you can use your face, fingerprint, PIN, or security key.\n\n<br>\n\n---\n\n<br>\n\nYou can only create a device passkey for a work or school account if your organization supports it.\n\n<br>\n\nPasskeys cannot be added to Microsoft 365 Business accounts at this time."
+    "notes": "#### To set up a passkey:\n\n1. [Sign in to your Microsoft account Advanced Security Options](https://go.microsoft.com/fwlink/?linkid=2250685) for personal accounts, or [MyAccount Security info](https://mysignins.microsoft.com/security-info) for work or school accounts.\n2. Choose **Add a new way to sign in** or **Verify**\n3. Select **Face, fingerprint, PIN, or security key**\n4. Follow the instructions on your device.\n5. Provide a name for your passkey.\n\n<br>\n\n---\n\n<br>\n\n**You can only create a device passkey for a work or school account if your organization supports it.**\n\n<br>\n\n<p align=\"center\"><sup><sub>Updated on December 3, 2025</sub></sup></p>"
   },
   {
     "id": "bcf23f0c08c86391634890a1e9d8c18a",
@@ -2312,6 +2492,18 @@
     "notes": "Powered by Passage by 1Password."
   },
   {
+    "id": "d58ba69bad8f845739c197eacb74601f",
+    "name": "Ramp",
+    "domain": "ramp.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.ramp.com/hc/en-us/articles/38214284722451-Logging-in-with-Passkeys",
+    "setup": "https://app.ramp.com/settings/personal-settings/security#/d/personal-settings/passkeys",
+    "category": "Finance",
+    "created_at": "2026-01-05T17:39:05.892118+00:00"
+  },
+  {
     "id": "36255c78c7acc899f15f0b992cce4d50",
     "name": "Miniflux",
     "domain": "reader.miniflux.app",
@@ -2653,6 +2845,30 @@
     "created_at": "2025-01-23T10:21:18.978455+00:00"
   },
   {
+    "id": "93bd7542bfc1fdc6133060ff37a2192b",
+    "name": "Telegram",
+    "domain": "telegram.me",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://telegram.org/faq/#q-what-is-a-passkey",
+    "category": "Information Technology",
+    "created_at": "2023-07-02T23:28:45.461517+00:00",
+    "notes": "Your passkeys can be managed in Settings > Privacy and Security > Passkeys from any app \u2014 which shows detailed info for each of your passkeys, like their creation date and when they were last used to log in."
+  },
+  {
+    "id": "af385d1d07e0d2f0efed45ed8aa91072",
+    "name": "Telegram ",
+    "domain": "telegram.org",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://telegram.org/faq/#q-what-is-a-passkey",
+    "category": "Other",
+    "created_at": "2023-03-22T22:50:07.976064+00:00",
+    "notes": "Your passkeys can be managed in Settings > Privacy and Security > Passkeys from any app \u2014 which shows detailed info for each of your passkeys, like their creation date and when they were last used to log in."
+  },
+  {
     "id": "11290699cf419fcc16db8dfa1d2d9242",
     "name": "Deutsche Telekom",
     "domain": "telekom.de",
@@ -2735,6 +2951,19 @@
     "setup": "https://www.ticketeer.se/dashboard",
     "category": "Information Technology",
     "created_at": "2024-10-21T10:21:31.859732+00:00"
+  },
+  {
+    "id": "b74ebaf5e2117103a1c293a8a5f3eeac",
+    "name": "Ticketmaster",
+    "domain": "ticketmaster.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.ticketmaster.com/hc/en-us/articles/37580664256145-What-are-passkeys-and-how-do-they-work",
+    "setup": "https://my.ticketmaster.com/security",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-06-06T14:47:33.192825+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Sign into ticketmaster\n2. Navigate to **My Account** \u2192 **My Profile** \u2192 **Sign In & Security**\n3. Add a passkey \n4. Follow the prompts from 1Password\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n**Currently, passkeys are not available on the ticketmaster mobile app.**\n\n<p align=\"center\"><sup><sub>Updated on September 22, 2025</sub></sup></p>"
   },
   {
     "id": "612bd0e58e15286297be5e907f906288",
@@ -2903,6 +3132,18 @@
     "created_at": "2023-04-03T16:02:31.413658+00:00"
   },
   {
+    "id": "bbce5f5b167601a14b77d53068a6990b",
+    "name": "VerifyThisSeal.com",
+    "domain": "verifythisseal.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://verifythisseal.com/my-account/passkeys",
+    "category": "Information Technology",
+    "created_at": "2025-09-22T17:46:01+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Sign into VerifyThisSeal.com\n2. Navigate to **Account Details** \u2192 **Security Settings** \u2192 **Passkeys**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on September 22, 2025</sub></sup></p>"
+  },
+  {
     "id": "a3e7dc7f0332f633ea49d9abfe09a452",
     "name": "Virgin Media",
     "domain": "virginmedia.com",
@@ -3008,6 +3249,19 @@
     "category": "Information Technology",
     "created_at": "2023-04-09T07:00:20.568068+00:00",
     "notes": "Saving and signing in with a passkey on Whatsapp is currently limited to the iOS and Android apps. Signing in to the Mac desktop version or on the web browser version of Whatsapp still requires using the \"Linked Devices\" feature or scanning the QR code using your mobile device.\n\n#### To set up a passkey on your Whatsapp account:\n1. Go to your WhatsApp settings.\n2. Tap Passkeys > Create a passkey.\n3. Tap Continue.\n- You may be asked to tap Use screen lock to create your passkey."
+  },
+  {
+    "id": "9c97455a834cf176b8c398b3016475c2",
+    "name": "Wise",
+    "domain": "wise.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://wise.com/help/articles/4OTG2Z93XXyaurUviZRg5O/how-can-i-use-a-passkey",
+    "setup": "https://wise.com/your-account/security-and-privacy/2fa/passkey",
+    "category": "Finance",
+    "created_at": "2023-03-30T15:44:12.829599+00:00"
   },
   {
     "id": "f79b57de78dae66da5c6bb0ccbb46228",
