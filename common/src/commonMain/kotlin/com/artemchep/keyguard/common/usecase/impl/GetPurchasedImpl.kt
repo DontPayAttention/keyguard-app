@@ -48,7 +48,7 @@ class GetPurchasedImpl(
     withoutPurchase: Premium = Premium.NONE,
     release: Boolean = isRelease,
 ) : GetPurchased {
-    private val unpaid = if (config.isFreeAsBeer) Premium.INCLUDED else withoutPurchase
+    private val unpaid = Premium.INCLUDED
 
     private val storeFlow = merge(
         getCachePremium()
