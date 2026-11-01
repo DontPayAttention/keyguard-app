@@ -26,14 +26,19 @@ jobs:
         with:
           profile: android
       - name: "Prepare env"
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_PROPS_B64: ${{ secrets.KEYSTORE_PROPS_B64 }}
+          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
         run: |
-          echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
-          echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.properties
-          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
+          printf '%s' "$KEYSTORE_B64" | base64 -d | zcat > androidApp/keyguard-release.keystore
+          printf '%s' "$KEYSTORE_PROPS_B64" | base64 -d | zcat > androidApp/keyguard-release.properties
+          printf '%s' "$GOOGLE_SERVICES" | base64 -d | zcat > androidApp/google-services.json
+
           {
             echo ""
             echo "versionRef=$(git rev-parse --short HEAD)"
-            echo buildkonfig.flavor=release
+            echo "buildkonfig.flavor=release"
           } >> gradle.properties
       - uses: ./.github/actions/build_android_licenses
         with:
