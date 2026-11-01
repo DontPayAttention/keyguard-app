@@ -43,6 +43,25 @@ jobs:
       - uses: ./.github/actions/build_android_licenses
         with:
           build-flavor: "None"
+      - name: "Verify release signing"
+        working-directory: androidApp
+        run: |
+          test -s keyguard-release.keystore || {
+            echo "ERROR: Release keystore missing or empty"
+            exit 1
+          }
+
+          test -s keyguard-release.properties || {
+            echo "ERROR: Release properties missing or empty"
+            exit 1
+          }
+
+          echo "Release keystore and properties exist."
+
+          keytool -list \
+            -keystore keyguard-release.keystore \
+            -storepass "$(grep '^password_key=' keyguard-release.properties | cut -d= -f2-)" \
+            -alias "$(grep '^key_alias=' keyguard-release.properties | cut -d= -f2-)"
       - name: "Build"
         run: >-
           ./gradlew
