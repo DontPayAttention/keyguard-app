@@ -1,5 +1,6 @@
 import com.android.build.api.dsl.KotlinMultiplatformAndroidHostTestCompilation
 import com.artemchep.keyguard.buildplugins.cargo.configureNativeLibraryTests
+import com.artemchep.keyguard.buildplugins.cargo.bundledAppResourcesFrom
 import com.artemchep.keyguard.buildplugins.kotlin.configureComposeIosSwiftRuntime
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleMain
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleTest
@@ -13,6 +14,11 @@ import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import com.artemchep.keyguard.buildplugins.version.keyguardVersionInfo
 import org.gradle.api.tasks.testing.Test
+import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.process.CommandLineArgumentProvider
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
@@ -527,6 +533,20 @@ registerJvmBenchmark(
     flightRecorder(layout.buildDirectory.file("reports/cipher-url-check/cipher-url-check-profile.jfr"))
 }
 
+// Not a benchmark: the same isolated JVM task writes the Keyguard export
+// of the import corpus, see src/desktopTest/resources/import-corpus/README.md.
+registerJvmBenchmark(
+    "importCorpusKeyguard",
+    "Writes the Keyguard export of the import corpus into the desktopTest resources.",
+    "com.artemchep.keyguard.common.service.imports.corpus.*",
+) {
+    systemProperty(
+        "keyguard.import-corpus.output",
+        layout.projectDirectory.dir("src/desktopTest/resources/import-corpus").asFile.absolutePath,
+    )
+    systemProperty("keyguard.import-corpus.version", libs.versions.appVersionName.get())
+}
+
 // See:
 // https://kotlinlang.org/docs/ksp-multiplatform.html#compilation-and-processing
 dependencies {
@@ -593,3 +613,26 @@ tasks.register("checkSshjDependencies") {
 }
 
 configureComposeIosSwiftRuntime()
+
+// This opt-in UI host exercises the production modifier without bootstrapping a vault.
+val attachmentDragProbeResources = bundledAppResourcesFrom(":desktopLibNative")
+val attachmentDragProbeCompilation = kotlin.targets.getByName("desktop").compilations.getByName("test")
+class AttachmentDragProbeArguments(
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    val resources: FileCollection,
+) : CommandLineArgumentProvider {
+    override fun asArguments(): List<String> {
+        val library = resources.singleFile.walkTopDown().single { it.isFile && it.name == "keyguard-lib" }
+        return listOf("-Dcompose.application.resources.dir=${library.parentFile.absolutePath}")
+    }
+}
+tasks.register<JavaExec>("attachmentDragMacProbe") {
+    group = "verification"
+    description = "Shows the synthetic Compose macOS file-promise drag probe."
+    dependsOn(attachmentDragProbeCompilation.compileTaskProvider)
+    classpath = files(attachmentDragProbeCompilation.output.allOutputs, attachmentDragProbeCompilation.runtimeDependencyFiles)
+    mainClass.set("com.artemchep.keyguard.feature.dragout.DragOutMacProbeKt")
+    jvmArgs("-Xcheck:jni")
+    jvmArgumentProviders.add(AttachmentDragProbeArguments(attachmentDragProbeResources))
+}
